@@ -229,7 +229,7 @@
 
   <!-- Boutons -->
   <div class="actions">
-    <button class="btn btn-primary" onclick="addCase()">＋ Ajouter um Cas</button>
+    <button class="btn btn-primary" onclick="addCase()">＋ Ajouter un Cas</button>
     <button class="btn btn-outline" onclick="saveAll()">💾 Enregistrer</button>
     <button class="btn btn-ghost" onclick="triggerImport()">📂 Importer JSON</button>
     <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImport(event)">
@@ -246,47 +246,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ══════════════════════════════════════════════════════
-  //  CONFIGURATION
-  // ══════════════════════════════════════════════════════
-
-  const API_URL     = 'http://localhost:8080/api/cas';
-  const STORAGE_KEY = 'phare_reunion';
-
-  const MEMBRES = [
-    '', 'Sammy K. Magbo', 'Anne-Marie L.', 'Bertrand P.',
-    'Caroline D.', 'David M.', 'Élodie R.', 'François T.',
-    'Gabrielle S.', 'Hugo V.', 'Isabelle C.', 'Julien B.',
-    'Karine F.', 'Laurent N.', 'Marie-Claire A.'
-  ];
-
-  const TYPES = [
-    { value: '', label: 'Choisir…' },
-    { value: 'CIBLE',  label: '🔴 Cible (victime)' },
-    { value: 'TEMOIN', label: '🟡 Témoin' },
-    { value: 'PI',     label: '🟣 PI (intimidateur)' }
-  ];
-
-  // Mapping vers l'API existante
-  const TYPE_TO_API = { CIBLE: 'VICTIME', TEMOIN: 'TEMOIN', PI: 'INTIMIDATEUR' };
-  const TYPE_FROM_API = { VICTIME: 'CIBLE', TEMOIN: 'TEMOIN', INTIMIDATEUR: 'PI' };
-
-  let rowCount = 0;
-  let apiOnline = false;
-
-  // ══════════════════════════════════════════════════════
-  //  INIT
-  // ══════════════════════════════════════════════════════
-
-  (async function init() {
-    const now = new Date();
-    document.getElementById('reunion-date').value = now.toISOString().slice(0, 10);
-    await loadData();
-    if (document.querySelectorAll('#table-body tr:not(.empty-row)').length === 0) {
-      for (let i = 0; i < 3; i++) addRow();
-    }
-    updateSummary();
-  })();
 
   const API_URL     = 'http://localhost:8080/api/cas';
   const STORAGE_KEY = 'phare_reunion_v2'; 
