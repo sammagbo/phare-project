@@ -158,7 +158,16 @@
   .btn-ghost:hover { background: #eee8e0; }
   .btn-danger { background: var(--accent-light); color: var(--accent); border: 1.5px solid var(--accent); }
   .btn-danger:hover { background: #f9d6d0; }
+  .btn-import { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-import:hover { background: var(--primary-light); }
   .spacer { flex: 1; }
+
+  /* ── iPad Optimizations ── */
+  @media (pointer: coarse) {
+    .btn { padding: .8rem 1.6rem; }
+    tbody td { padding: .8rem .6rem; }
+    tbody input, tbody select, .info-bar input, .info-bar select { padding: .7rem; font-size: 1rem; }
+  }
 
   /* ── Toast ── */
   .toast {
@@ -259,6 +268,8 @@
   <div class="actions">
     <button class="btn btn-outline" onclick="addRow()">＋ Ajouter une ligne</button>
     <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer</button>
+    <button class="btn btn-import" onclick="triggerImport()">📂 Importar JSON</button>
+    <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImport(event)">
     <span class="spacer"></span>
     <button class="btn btn-ghost" onclick="exportJSON()">📄 JSON</button>
     <button class="btn btn-ghost" onclick="printReport()">🖨️ Imprimer</button>
@@ -592,6 +603,56 @@
     a.click();
     URL.revokeObjectURL(a.href);
     toast('Export JSON téléchargé.');
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  IMPORT JSON
+  // ══════════════════════════════════════════════════════
+
+  function triggerImport() {
+    document.getElementById('import-file').click();
+  }
+
+  function processImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!Array.isArray(data)) throw new Error('Format invalide');
+
+        if (confirm(`Importer ${data.length} lignes ? Cela remplacera votre tableau actuel.`)) {
+          // Vider le tableau
+          document.getElementById('table-body').innerHTML = '';
+          rowCount = 0;
+
+          // Ajouter les lignes
+          data.forEach(r => {
+            addRow();
+            const row = document.querySelector(`#row-${rowCount}`);
+            if (row) {
+              row.querySelector('[data-f="membre"]').value = r.membre || '';
+              row.querySelector('[data-f="type"]').value = r.type || '';
+              row.querySelector('[data-f="eleve"]').value = r.eleve || '';
+              row.querySelector('[data-f="date"]').value = r.date || '';
+              row.querySelector('[data-f="heure"]').value = r.heure || '';
+              updateRowColor(row);
+            }
+          });
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          updateSummary();
+          toast('Dados importados com sucesso!');
+        }
+      } catch (err) {
+        console.error(err);
+        toast('Erro ao ler arquivo JSON.', true);
+      }
+      event.target.value = ''; // Reset input
+    };
+    reader.readAsText(file);
   }
 
   function printReport() { window.print(); }
