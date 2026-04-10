@@ -137,8 +137,8 @@
   .actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
   .btn {
     display: inline-flex; align-items: center; gap: .45rem;
-    padding: .7rem 1.4rem; border: none; border-radius: var(--radius);
-    font-family: inherit; font-size: .9rem; font-weight: 500;
+    padding: .55rem 1.1rem; border: none; border-radius: var(--radius);
+    font-family: inherit; font-size: .88rem; font-weight: 600;
     cursor: pointer; transition: background .2s, transform .15s;
   }
   .btn:active { transform: scale(.97); }
@@ -155,9 +155,9 @@
 
   /* ── iPad Optimizations ── */
   @media (pointer: coarse) {
-    .btn { padding: .8rem 1.6rem; }
-    .student-card input, .student-card select, .global-fields input { padding: .8rem; font-size: 1rem; }
-    .btn-delete { font-size: 1.5rem; padding: .6rem; }
+    .btn { padding: .7rem 1.3rem; }
+    .student-card input, .student-card select, .global-fields input { padding: .65rem; font-size: 1rem; }
+    .btn-delete { font-size: 1.4rem; padding: .5rem; }
   }
 
   /* ── Toast ── */
@@ -292,7 +292,7 @@
   <div class="actions">
     <button class="btn btn-secondary" onclick="addStudent()">＋ Ajouter un élève</button>
     <button class="btn btn-primary" onclick="saveCase()">💾 Enregistrer</button>
-    <button class="btn btn-import" onclick="triggerImport()">📂 Importar JSON</button>
+    <button class="btn btn-import" onclick="triggerImport()">📂 Importer JSON</button>
     <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImport(event)">
     <button class="btn btn-export" onclick="exportJSON()">📄 Exporter JSON</button>
     <button class="btn btn-print" onclick="printReport()">🖨️ Imprimer</button>

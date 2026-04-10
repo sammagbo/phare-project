@@ -78,75 +78,58 @@
   }
   .info-bar input:focus, .info-bar select:focus { outline: none; border-color: var(--primary); }
 
-  /* ── Table ── */
-  .table-wrap {
+  /* ── Case Cards ── */
+  #table-body { display: none; } /* Hide old table body logic */
+  .cases-list { display: flex; flex-direction: column; gap: 1.25rem; }
+  .case-card {
     background: var(--card);
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    overflow-x: auto;
+    overflow: hidden;
+    animation: fadeIn .3s ease;
   }
-  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-  thead { background: var(--primary); color: #fff; }
-  thead th {
-    padding: .7rem .65rem;
-    font-size: .72rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .5px;
-    text-align: left; white-space: nowrap;
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .case-header {
+    background: #fcfbf9;
+    padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
   }
-  thead th:first-child { border-radius: var(--radius) 0 0 0; }
-  thead th:last-child  { border-radius: 0 var(--radius) 0 0; }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
-  tbody tr:hover { background: #fafaf8; }
-  tbody tr.row-cible  { border-left: 4px solid var(--cible); }
-  tbody tr.row-temoin { border-left: 4px solid var(--temoin); }
-  tbody tr.row-pi     { border-left: 4px solid var(--pi); }
-  tbody td { padding: .55rem .5rem; vertical-align: middle; }
-  tbody td .num { font-weight: 700; color: var(--text-light); font-size: .8rem; }
-  tbody input, tbody select {
-    width: 100%; padding: .4rem .5rem;
-    border: 1.5px solid transparent; border-radius: 6px;
-    font-family: inherit; font-size: .85rem;
-    background: transparent; transition: all .15s;
+  .case-title { font-family: 'Fraunces', serif; font-size: .95rem; color: var(--primary); font-weight: 700; }
+  .case-meta { display: flex; gap: .75rem; align-items: center; }
+  .case-meta input { padding: .35rem .6rem; border: 1px solid var(--border); border-radius: 6px; font-size: .8rem; }
+
+  .case-body { padding: 0; }
+  .row-student {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr 130px 95px 40px;
+    gap: .5rem;
+    padding: .6rem .75rem;
+    align-items: center;
+    border-bottom: 1px solid #f8f6f2;
   }
-  tbody input:hover, tbody select:hover { background: #f4f1ec; }
-  tbody input:focus, tbody select:focus {
+  .row-student:last-child { border-bottom: none; }
+  
+  .row-student.cible { background: #fff9f8; border-left: 4px solid var(--cible); }
+  .row-student.temoin { background: #fffdf5; border-left: 4px solid var(--temoin); }
+  .row-student.pi { background: #fdfbff; border-left: 4px solid var(--pi); }
+
+  .row-student select, .row-student input {
+    padding: .45rem .6rem; border: 1.5px solid transparent; border-radius: 6px;
+    font-size: .85rem; background: #fafaf8; transition: all .15s;
+  }
+  .row-student select:focus, .row-student input:focus {
     outline: none; border-color: var(--primary); background: #fff;
-  }
-  tbody input.invalid, tbody select.invalid {
-    border-color: var(--accent); background: var(--accent-light);
-  }
-
-  /* ── Type badge in table ── */
-  .type-badge {
-    display: inline-flex; align-items: center; gap: .2rem;
-    font-size: .68rem; font-weight: 700; padding: .15rem .5rem;
-    border-radius: 12px; text-transform: uppercase; letter-spacing: .3px;
-  }
-  .badge-CIBLE  { background: var(--cible-bg); color: var(--cible); border: 1px solid var(--cible-border); }
-  .badge-TEMOIN { background: var(--temoin-bg); color: var(--temoin); border: 1px solid var(--temoin-border); }
-  .badge-PI     { background: var(--pi-bg);     color: var(--pi);     border: 1px solid var(--pi-border); }
-
-  /* ── Row delete ── */
-  .btn-row-delete {
-    background: none; border: none; color: var(--accent);
-    font-size: 1.1rem; cursor: pointer; padding: .3rem;
-    border-radius: 4px; transition: background .15s;
-  }
-  .btn-row-delete:hover { background: rgba(192,57,43,.08); }
-
-  /* ── Empty state ── */
-  .empty-row td {
-    text-align: center; padding: 2rem 1rem;
-    color: var(--text-light); font-size: .9rem; font-style: italic;
   }
 
   /* ── Buttons ── */
-  .actions { margin-top: 1rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+  .actions { margin-top: 1.5rem; display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; }
   .btn {
     display: inline-flex; align-items: center; gap: .4rem;
-    padding: .6rem 1.2rem; border: none; border-radius: 8px;
-    font-family: inherit; font-size: .85rem; font-weight: 500;
+    padding: .65rem 1.2rem; border: none; border-radius: 8px;
+    font-family: inherit; font-size: .85rem; font-weight: 600;
     cursor: pointer; transition: background .2s, transform .12s;
   }
   .btn:active { transform: scale(.97); }
@@ -156,6 +139,15 @@
   .btn-outline:hover { background: var(--primary-light); }
   .btn-ghost { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
   .btn-ghost:hover { background: #eee8e0; }
+
+  .btn-add-item {
+    font-size: .75rem; padding: .3rem .7rem; background: var(--primary-light); color: var(--primary);
+    border: none; border-radius: 6px; cursor: pointer; font-weight: 700; margin: .5rem 1rem;
+  }
+  .btn-add-item:hover { background: #d0e4d6; }
+
+  .btn-case-delete { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 1rem; padding: .2rem .5rem; border-radius: 4px; }
+  .btn-case-delete:hover { background: var(--accent-light); color: var(--accent); }
   .btn-danger { background: var(--accent-light); color: var(--accent); border: 1.5px solid var(--accent); }
   .btn-danger:hover { background: #f9d6d0; }
   .btn-import { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
@@ -232,48 +224,18 @@
     <span class="api-badge offline" id="api-status">⏳ Connexion…</span>
   </header>
 
-  <!-- Infos de la réunion -->
-  <div class="info-bar">
-    <div class="field">
-      <span class="field-label">Date réunion</span>
-      <input type="date" id="reunion-date">
-    </div>
-    <div class="field">
-      <span class="field-label">Classe / Niveau</span>
-      <input type="text" id="reunion-classe" placeholder="Ex : 6ème B">
-    </div>
-  </div>
-
-  <!-- Tableau d'attribution -->
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:40px">#</th>
-          <th>Membre pHARe</th>
-          <th>Type</th>
-          <th>Élève</th>
-          <th>Date entretien</th>
-          <th>Heure</th>
-          <th style="width:40px"></th>
-        </tr>
-      </thead>
-      <tbody id="table-body">
-        <!-- Lignes dynamiques -->
-      </tbody>
-    </table>
-  </div>
+  <!-- Liste des Cas -->
+  <div id="cases-container" class="cases-list"></div>
 
   <!-- Boutons -->
   <div class="actions">
-    <button class="btn btn-outline" onclick="addRow()">＋ Ajouter une ligne</button>
-    <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer</button>
-    <button class="btn btn-import" onclick="triggerImport()">📂 Importar JSON</button>
+    <button class="btn btn-primary" onclick="addCase()">＋ Ajouter um Cas</button>
+    <button class="btn btn-outline" onclick="saveAll()">💾 Enregistrer</button>
+    <button class="btn btn-ghost" onclick="triggerImport()">📂 Importer JSON</button>
     <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImport(event)">
-    <span class="spacer"></span>
-    <button class="btn btn-ghost" onclick="exportJSON()">📄 JSON</button>
+    <button class="btn btn-ghost" onclick="exportJSON()">📄 Exporter JSON</button>
     <button class="btn btn-ghost" onclick="printReport()">🖨️ Imprimer</button>
-    <button class="btn btn-danger" onclick="clearAll()">🗑️ Tout effacer</button>
+    <button class="btn btn-danger" onclick="clearAll()" style="background:none; border:none; color:var(--accent); font-size:.8rem; cursor:pointer">🗑️ Tout effacer</button>
   </div>
 
   <!-- Résumé par membre -->
@@ -326,356 +288,241 @@
     updateSummary();
   })();
 
-  // ══════════════════════════════════════════════════════
-  //  API LAYER
-  // ══════════════════════════════════════════════════════
+  const API_URL     = 'http://localhost:8080/api/cas';
+  const STORAGE_KEY = 'phare_reunion_v2'; 
+
+  const MEMBRES = [
+    '', 'Sammy K. Magbo', 'Anne-Marie L.', 'Bertrand P.',
+    'Caroline D.', 'David M.', 'Élodie R.', 'François T.',
+    'Gabrielle S.', 'Hugo V.', 'Isabelle C.', 'Julien B.',
+    'Karine F.', 'Laurent N.', 'Marie-Claire A.'
+  ];
+
+  const TYPES = {
+    CIBLE:  { label: '🔴 Cible', class: 'cible' },
+    TEMOIN: { label: '🟡 Témoin', class: 'temoin' },
+    PI:     { label: '🟣 PI', class: 'pi' }
+  };
+
+  const TYPE_MAP_API = { CIBLE: 'VICTIME', TEMOIN: 'TEMOIN', PI: 'INTIMIDATEUR' };
+
+  let caseCount = 0;
+  let apiOnline = false;
+
+  (async function init() {
+    await loadData();
+    if (document.querySelectorAll('.case-card').length === 0) addCase();
+    updateSummary();
+  })();
 
   async function api(url, opts = {}) {
     try {
       const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
-      apiOnline = true;
-      showApiStatus(true);
+      apiOnline = true; showApiStatus(true);
       if (!res.ok) return null;
       return await res.json();
     } catch (e) {
-      apiOnline = false;
-      showApiStatus(false);
+      apiOnline = false; showApiStatus(false);
       return null;
     }
   }
 
   function showApiStatus(on) {
     const el = document.getElementById('api-status');
-    el.textContent = on ? '🟢 API connectée' : '🔴 Mode hors-ligne';
-    el.className = 'api-badge ' + (on ? 'online' : 'offline');
+    if (el) {
+      el.textContent = on ? '🟢 API connectée' : '🔴 Mode hors-ligne';
+      el.className = 'api-badge ' + (on ? 'online' : 'offline');
+    }
   }
 
   async function loadData() {
     const data = await api(API_URL);
-    if (data && data.length > 0) {
-      // Convertir les cas API en lignes de tableau
-      data.forEach(cas => {
-        cas.eleves.forEach(e => {
-          addRow();
-          const row = document.querySelector(`#row-${rowCount}`);
-          if (row) {
-            row.querySelector('[data-f="membre"]').value = e.membre || '';
-            const ft = TYPE_FROM_API[e.type] || e.type;
-            row.querySelector('[data-f="type"]').value = ft;
-            row.querySelector('[data-f="eleve"]').value = e.nom;
-            row.querySelector('[data-f="date"]').value = cas.date || '';
-            row.querySelector('[data-f="heure"]').value = cas.heure || '';
-            updateRowColor(row);
-          }
-        });
-      });
-    } else {
-      // Fallback localStorage
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      saved.forEach(r => {
-        addRow();
-        const row = document.querySelector(`#row-${rowCount}`);
-        if (row) {
-          row.querySelector('[data-f="membre"]').value = r.membre || '';
-          row.querySelector('[data-f="type"]').value = r.type || '';
-          row.querySelector('[data-f="eleve"]').value = r.eleve || '';
-          row.querySelector('[data-f="date"]').value = r.date || '';
-          row.querySelector('[data-f="heure"]').value = r.heure || '';
-          updateRowColor(row);
-        }
-      });
-    }
+    let cases = data && data.length > 0 ? data : JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    cases.forEach(c => addCase(c));
   }
 
-  // ══════════════════════════════════════════════════════
-  //  TOAST
-  // ══════════════════════════════════════════════════════
+  function addCase(existingData = null) {
+    caseCount++;
+    const id = caseCount;
+    const container = document.getElementById('cases-container');
+    
+    const card = document.createElement('div');
+    card.className = 'case-card';
+    card.id = `case-${id}`;
 
-  function toast(msg, err = false) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show' + (err ? ' error' : '');
-    setTimeout(() => el.className = 'toast', 2500);
-  }
+    const dateVal   = existingData?.date || new Date().toISOString().slice(0, 10);
+    const classeVal = existingData?.classe || existingData?.eleves?.[0]?.classe || '';
 
-  // ══════════════════════════════════════════════════════
-  //  TABLE — Ajouter / Supprimer / Mettre à jour
-  // ══════════════════════════════════════════════════════
-
-  function addRow() {
-    const tbody = document.getElementById('table-body');
-    const empty = tbody.querySelector('.empty-row');
-    if (empty) empty.remove();
-
-    rowCount++;
-    const id = rowCount;
-    const tr = document.createElement('tr');
-    tr.id = `row-${id}`;
-
-    const membreOpts = MEMBRES.map(m =>
-      `<option value="${m}"${m === '' ? ' disabled selected' : ''}>${m || 'Sélectionner…'}</option>`
-    ).join('');
-
-    const typeOpts = TYPES.map(t =>
-      `<option value="${t.value}"${t.value === '' ? ' disabled selected' : ''}>${t.label}</option>`
-    ).join('');
-
-    const defaultDate = document.getElementById('reunion-date').value || '';
-
-    tr.innerHTML = `
-      <td><span class="num">${id}</span></td>
-      <td><select data-f="membre">${membreOpts}</select></td>
-      <td><select data-f="type" onchange="updateRowColor(this.closest('tr')); updateSummary()">${typeOpts}</select></td>
-      <td><input type="text" data-f="eleve" placeholder="Prénom Nom"></td>
-      <td><input type="date" data-f="date" value="${defaultDate}"></td>
-      <td><input type="time" data-f="heure" value=""></td>
-      <td><button class="btn-row-delete" title="Supprimer" onclick="deleteRow(${id})">✕</button></td>
+    card.innerHTML = `
+      <div class="case-header">
+        <span class="case-title">📂 Cas #${id}</span>
+        <div class="case-meta">
+          <input type="text" placeholder="Classe" class="case-classe" value="${classeVal}">
+          <input type="date" class="case-date" value="${dateVal}">
+          <button class="btn-case-delete" onclick="deleteCase(${id})">✕</button>
+        </div>
+      </div>
+      <div class="case-body" id="case-body-${id}"></div>
+      <div style="display:flex; justify-content:center; gap:1rem; padding: 0.5rem 0;">
+        <button class="btn-add-item" onclick="addStudentToCase(${id}, 'TEMOIN')">＋ Témoin</button>
+        <button class="btn-add-item" onclick="addStudentToCase(${id}, 'PI')">＋ PI</button>
+      </div>
     `;
 
-    tbody.appendChild(tr);
+    container.appendChild(card);
 
-    // Mettre à jour le résumé quand on change un champ
-    tr.querySelectorAll('input, select').forEach(el => {
-      el.addEventListener('change', updateSummary);
-      el.addEventListener('input', updateSummary);
-    });
-  }
-
-  function deleteRow(id) {
-    const row = document.getElementById(`row-${id}`);
-    if (row) {
-      row.style.opacity = '0';
-      row.style.transition = 'opacity .2s';
-      setTimeout(() => {
-        row.remove();
-        renumberRows();
-        updateSummary();
-        if (document.querySelectorAll('#table-body tr').length === 0) showEmpty();
-      }, 200);
+    if (existingData && existingData.eleves) {
+      existingData.eleves.forEach(e => {
+        let role = e.type;
+        if (role === 'VICTIME') role = 'CIBLE';
+        if (role === 'INTIMIDATEUR') role = 'PI';
+        addStudentToCase(id, role, e);
+      });
+    } else {
+      addStudentToCase(id, 'CIBLE');
+      addStudentToCase(id, 'TEMOIN', { nom: 'Ex: témoin anonyme' });
+      addStudentToCase(id, 'PI');
     }
   }
 
-  function updateRowColor(row) {
-    const type = row.querySelector('[data-f="type"]').value;
-    row.className = '';
-    if (type) row.classList.add(`row-${type.toLowerCase()}`);
-  }
+  function addStudentToCase(caseId, type, data = {}) {
+    const body = document.getElementById(`case-body-${caseId}`);
+    const row = document.createElement('div');
+    row.className = `row-student ${type.toLowerCase()}`;
+    row.dataset.type = type;
 
-  function renumberRows() {
-    document.querySelectorAll('#table-body tr .num').forEach((el, i) => {
-      el.textContent = i + 1;
+    const membreOpts = MEMBRES.map(m =>
+      `<option value="${m}" ${data.membre === m ? 'selected' : ''}>${m || 'pHARe…'}</option>`
+    ).join('');
+
+    row.innerHTML = `
+      <div class="type-badge badge-${type}">${TYPES[type].label}</div>
+      <input type="text" placeholder="Nom de l'élève" class="f-nom" value="${data.nom || data.eleve || ''}">
+      <select class="f-membre">${membreOpts}</select>
+      <input type="date" class="f-date" value="${data.date || document.querySelector(`#case-${caseId} .case-date`).value}">
+      <input type="time" class="f-heure" value="${data.heure || ''}">
+      <button class="btn-case-delete" style="color:var(--accent)" onclick="this.closest('.row-student').remove(); updateSummary();">✕</button>
+    `;
+    body.appendChild(row);
+    row.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', updateSummary);
     });
+    updateSummary();
   }
 
-  function showEmpty() {
-    const tbody = document.getElementById('table-body');
-    const tr = document.createElement('tr');
-    tr.className = 'empty-row';
-    tr.innerHTML = '<td colspan="7">Aucune ligne. Cliquez sur « ＋ Ajouter une ligne ».</td>';
-    tbody.appendChild(tr);
+  function deleteCase(id) {
+    if (confirm('Supprimer ce cas entier ?')) {
+      document.getElementById(`case-${id}`).remove();
+      updateSummary();
+    }
   }
 
-  // ══════════════════════════════════════════════════════
-  //  COLLECTE & VALIDATION
-  // ══════════════════════════════════════════════════════
-
-  function collectRows() {
-    const rows = document.querySelectorAll('#table-body tr:not(.empty-row)');
-    const data = [];
-    let valid = true;
-
-    rows.forEach(row => {
-      const membre = row.querySelector('[data-f="membre"]').value;
-      const type   = row.querySelector('[data-f="type"]').value;
-      const eleve  = row.querySelector('[data-f="eleve"]').value.trim();
-      const date   = row.querySelector('[data-f="date"]').value;
-      const heure  = row.querySelector('[data-f="heure"]').value;
-
-      // Marquer les champs invalides
-      const eleveInput = row.querySelector('[data-f="eleve"]');
-      const typeSelect = row.querySelector('[data-f="type"]');
-
-      if (!eleve) { eleveInput.classList.add('invalid'); valid = false; }
-      else eleveInput.classList.remove('invalid');
-
-      if (!type) { typeSelect.classList.add('invalid'); valid = false; }
-      else typeSelect.classList.remove('invalid');
-
-      data.push({ membre, type, eleve, date, heure });
+  function collectData() {
+    const cards = document.querySelectorAll('.case-card');
+    const cases = [];
+    cards.forEach(card => {
+      const date   = card.querySelector('.case-date').value;
+      const classe = card.querySelector('.case-classe').value;
+      const eleves = [];
+      card.querySelectorAll('.row-student').forEach(row => {
+        eleves.push({
+          type: row.dataset.type,
+          nom: row.querySelector('.f-nom').value,
+          membre: row.querySelector('.f-membre').value,
+          date: row.querySelector('.f-date').value,
+          heure: row.querySelector('.f-heure').value
+        });
+      });
+      cases.push({ date, classe, eleves });
     });
-
-    return { data, valid };
+    return cases;
   }
-
-  // ══════════════════════════════════════════════════════
-  //  ENREGISTRER — vers API + localStorage
-  // ══════════════════════════════════════════════════════
 
   async function saveAll() {
-    const { data, valid } = collectRows();
-
-    if (data.length === 0) { toast('Ajoutez au moins une ligne.', true); return; }
-    if (!valid) { toast('Remplissez le nom et le type de chaque élève.', true); return; }
-
-    // Sauvegarder en localStorage (toujours)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-    // Grouper par date+heure pour créer des "cas" compatibles avec l'API
-    const grouped = {};
-    data.forEach(r => {
-      const key = `${r.date || 'sans-date'}_${r.heure || 'sans-heure'}`;
-      if (!grouped[key]) grouped[key] = { date: r.date, heure: r.heure, eleves: [] };
-      grouped[key].eleves.push({
-        nom: r.eleve,
-        type: TYPE_TO_API[r.type] || r.type,
-        membre: r.membre
-      });
-    });
-
-    // Envoyer chaque groupe comme un cas à l'API
-    if (apiOnline || !document.getElementById('api-status').classList.contains('offline')) {
-      let success = true;
-      for (const cas of Object.values(grouped)) {
-        const result = await api(API_URL, {
+    const cases = collectData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
+    
+    if (apiOnline) {
+      for (const c of cases) {
+        await api(API_URL, {
           method: 'POST',
-          body: JSON.stringify(cas)
+          body: JSON.stringify({
+            date: c.date,
+            heure: '00:00',
+            eleves: c.eleves.map(e => ({ ...e, type: TYPE_MAP_API[e.type] }))
+          })
         });
-        if (!result) success = false;
       }
-      if (success && apiOnline) {
-        toast('Données enregistrées (API + local) !');
-      } else if (!apiOnline) {
-        toast('Enregistré en local (API indisponible).');
-      }
-    } else {
-      toast('Enregistré en local.');
     }
+    toast('Sauvegardé avec sucesso !');
   }
 
-  // ══════════════════════════════════════════════════════
-  //  RÉSUMÉ PAR MEMBRE
-  // ══════════════════════════════════════════════════════
-
   function updateSummary() {
-    const { data } = collectRows();
+    const cases = collectData();
     const grid = document.getElementById('summary-grid');
-
-    // Grouper par membre
     const byMember = {};
-    data.forEach(r => {
-      if (!r.membre || !r.eleve) return;
-      if (!byMember[r.membre]) byMember[r.membre] = [];
-      byMember[r.membre].push(r);
+
+    cases.forEach(c => {
+      c.eleves.forEach(e => {
+        if (!e.membre || !e.nom) return;
+        if (!byMember[e.membre]) byMember[e.membre] = [];
+        byMember[e.membre].push({ ...e, classe: c.classe });
+      });
     });
 
     if (Object.keys(byMember).length === 0) {
-      grid.innerHTML = '<p style="color:var(--text-light);font-size:.85rem;font-style:italic">Remplissez le tableau pour voir le résumé.</p>';
+      grid.innerHTML = '<p style="color:var(--text-light);font-size:.85rem;font-style:italic">Aucune attribution en cours.</p>';
       return;
     }
 
     grid.innerHTML = Object.entries(byMember).map(([membre, rows]) => {
-      const lis = rows.map(r => {
-        const badgeClass = `badge-${r.type}`;
-        const label = TYPES.find(t => t.value === r.type)?.label?.replace(/[🔴🟡🟣] /, '') || r.type;
-        const time = r.heure ? ` à ${r.heure}` : '';
-        const date = r.date ? formatDate(r.date) : '';
-        return `<li>
-          <span class="type-badge ${badgeClass}">${label}</span>
-          <strong>${r.eleve}</strong>
-          ${date ? `<br><span style="font-size:.75rem;color:var(--text-light)">${date}${time}</span>` : ''}
-        </li>`;
-      }).join('');
-      return `<div class="summary-card"><h4>${membre} <span style="font-size:.75rem;color:var(--text-light)">(${rows.length} entretien${rows.length > 1 ? 's' : ''})</span></h4><ul>${lis}</ul></div>`;
+      const lis = rows.map(r => `
+        <li>
+          <strong>${r.nom}</strong> (${TYPES[r.type]?.label || r.type})
+          <br><span style="font-size:.7rem; color:var(--text-light)">${r.classe} — ${r.date} ${r.heure}</span>
+        </li>
+      `).join('');
+      return `<div class="summary-card"><h4>${membre} (${rows.length})</h4><ul>${lis}</ul></div>`;
     }).join('');
   }
 
-  // ══════════════════════════════════════════════════════
-  //  EXPORT / IMPRESSION / RESET
-  // ══════════════════════════════════════════════════════
-
   function exportJSON() {
-    const { data } = collectRows();
-    if (data.length === 0) { toast('Rien à exporter.', true); return; }
+    const data = collectData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `phare_reunion_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
-    URL.revokeObjectURL(a.href);
-    toast('Export JSON téléchargé.');
+    toast('Export JSON pronto.');
   }
 
-  // ══════════════════════════════════════════════════════
-  //  IMPORT JSON
-  // ══════════════════════════════════════════════════════
-
-  function triggerImport() {
-    document.getElementById('import-file').click();
-  }
-
+  function triggerImport() { document.getElementById('import-file').click(); }
   function processImport(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        if (!Array.isArray(data)) throw new Error('Format invalide');
-
-        if (confirm(`Importer ${data.length} lignes ? Cela remplacera votre tableau actuel.`)) {
-          // Vider le tableau
-          document.getElementById('table-body').innerHTML = '';
-          rowCount = 0;
-
-          // Ajouter les lignes
-          data.forEach(r => {
-            addRow();
-            const row = document.querySelector(`#row-${rowCount}`);
-            if (row) {
-              row.querySelector('[data-f="membre"]').value = r.membre || '';
-              row.querySelector('[data-f="type"]').value = r.type || '';
-              row.querySelector('[data-f="eleve"]').value = r.eleve || '';
-              row.querySelector('[data-f="date"]').value = r.date || '';
-              row.querySelector('[data-f="heure"]').value = r.heure || '';
-              updateRowColor(row);
-            }
-          });
-
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          updateSummary();
-          toast('Dados importados com sucesso!');
-        }
-      } catch (err) {
-        console.error(err);
-        toast('Erro ao ler arquivo JSON.', true);
-      }
-      event.target.value = ''; // Reset input
+        document.getElementById('cases-container').innerHTML = '';
+        caseCount = 0;
+        data.forEach(c => addCase(c));
+        toast('Dados importados com sucesso!');
+      } catch (err) { toast('Arquivo inválido.', true); }
     };
     reader.readAsText(file);
   }
 
   function printReport() { window.print(); }
-
-  function clearAll() {
-    if (!confirm('Effacer toutes les lignes ?')) return;
-    document.getElementById('table-body').innerHTML = '';
-    rowCount = 0;
-    localStorage.removeItem(STORAGE_KEY);
-    showEmpty();
-    updateSummary();
-    toast('Tableau effacé.');
-  }
-
-  // ══════════════════════════════════════════════════════
-  //  UTILITAIRE
-  // ══════════════════════════════════════════════════════
-
-  function formatDate(str) {
-    if (!str) return '';
-    const [y, m, d] = str.split('-');
-    return `${d}/${m}/${y}`;
+  function clearAll() { if (confirm('Tout effacer ?')) { document.getElementById('cases-container').innerHTML = ''; updateSummary(); } }
+  function toast(msg, err = false) {
+    const el = document.getElementById('toast');
+    if (el) {
+      el.textContent = msg; el.className = 'toast show' + (err ? ' error' : '');
+      setTimeout(() => el.className = 'toast', 2500);
+    }
   }
 </script>
 </body>
 </html>
+
