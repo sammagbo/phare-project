@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pHARe — Réunion d'attribution des entretiens</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f1ec;
+    --card: #ffffff;
+    --primary: #1a5632;
+    --primary-hover: #14442a;
+    --primary-light: #e8f0eb;
+    --accent: #c0392b;
+    --accent-light: #fdf0ee;
+    --cible: #c0392b;
+    --cible-bg: #fdecea;
+    --cible-border: #f5c6cb;
+    --temoin: #b7950b;
+    --temoin-bg: #fef9e7;
+    --temoin-border: #f0e199;
+    --pi: #6c2d8b;
+    --pi-bg: #f0e0f7;
+    --pi-border: #d5b8e8;
+    --text: #2c2c2c;
+    --text-light: #6b6b6b;
+    --border: #ddd5ca;
+    --shadow: 0 2px 12px rgba(0,0,0,.06);
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; }
+
+  /* ── Header ── */
+  header { text-align: center; margin-bottom: 1.5rem; }
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.8rem;
+    color: var(--primary);
+    letter-spacing: -.5px;
+  }
+  header p { color: var(--text-light); margin-top: .3rem; font-size: .9rem; }
+  .api-badge {
+    display: inline-block; margin-top: .4rem;
+    font-size: .7rem; font-weight: 600; padding: .2rem .6rem;
+    border-radius: 20px; letter-spacing: .3px;
+  }
+  .api-badge.online  { background: var(--primary-light); color: var(--primary); }
+  .api-badge.offline { background: var(--accent-light); color: var(--accent); }
+
+  /* ── Info bar ── */
+  .info-bar {
+    display: flex; gap: 1rem; margin-bottom: 1.25rem;
+    flex-wrap: wrap; align-items: end;
+  }
+  .info-bar .field { display: flex; flex-direction: column; gap: .3rem; }
+  .info-bar .field-label {
+    font-size: .72rem; font-weight: 700; color: var(--text);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .info-bar input, .info-bar select {
+    padding: .5rem .65rem;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: .85rem;
+    background: var(--card); transition: border-color .2s;
+  }
+  .info-bar input:focus, .info-bar select:focus { outline: none; border-color: var(--primary); }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  thead { background: var(--primary); color: #fff; }
+  thead th {
+    padding: .7rem .65rem;
+    font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px;
+    text-align: left; white-space: nowrap;
+  }
+  thead th:first-child { border-radius: var(--radius) 0 0 0; }
+  thead th:last-child  { border-radius: 0 var(--radius) 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  tbody tr:hover { background: #fafaf8; }
+  tbody tr.row-cible  { border-left: 4px solid var(--cible); }
+  tbody tr.row-temoin { border-left: 4px solid var(--temoin); }
+  tbody tr.row-pi     { border-left: 4px solid var(--pi); }
+  tbody td { padding: .55rem .5rem; vertical-align: middle; }
+  tbody td .num { font-weight: 700; color: var(--text-light); font-size: .8rem; }
+  tbody input, tbody select {
+    width: 100%; padding: .4rem .5rem;
+    border: 1.5px solid transparent; border-radius: 6px;
+    font-family: inherit; font-size: .85rem;
+    background: transparent; transition: all .15s;
+  }
+  tbody input:hover, tbody select:hover { background: #f4f1ec; }
+  tbody input:focus, tbody select:focus {
+    outline: none; border-color: var(--primary); background: #fff;
+  }
+  tbody input.invalid, tbody select.invalid {
+    border-color: var(--accent); background: var(--accent-light);
+  }
+
+  /* ── Type badge in table ── */
+  .type-badge {
+    display: inline-flex; align-items: center; gap: .2rem;
+    font-size: .68rem; font-weight: 700; padding: .15rem .5rem;
+    border-radius: 12px; text-transform: uppercase; letter-spacing: .3px;
+  }
+  .badge-CIBLE  { background: var(--cible-bg); color: var(--cible); border: 1px solid var(--cible-border); }
+  .badge-TEMOIN { background: var(--temoin-bg); color: var(--temoin); border: 1px solid var(--temoin-border); }
+  .badge-PI     { background: var(--pi-bg);     color: var(--pi);     border: 1px solid var(--pi-border); }
+
+  /* ── Row delete ── */
+  .btn-row-delete {
+    background: none; border: none; color: var(--accent);
+    font-size: 1.1rem; cursor: pointer; padding: .3rem;
+    border-radius: 4px; transition: background .15s;
+  }
+  .btn-row-delete:hover { background: rgba(192,57,43,.08); }
+
+  /* ── Empty state ── */
+  .empty-row td {
+    text-align: center; padding: 2rem 1rem;
+    color: var(--text-light); font-size: .9rem; font-style: italic;
+  }
+
+  /* ── Buttons ── */
+  .actions { margin-top: 1rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .6rem 1.2rem; border: none; border-radius: 8px;
+    font-family: inherit; font-size: .85rem; font-weight: 500;
+    cursor: pointer; transition: background .2s, transform .12s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-outline { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-outline:hover { background: var(--primary-light); }
+  .btn-ghost { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { background: #eee8e0; }
+  .btn-danger { background: var(--accent-light); color: var(--accent); border: 1.5px solid var(--accent); }
+  .btn-danger:hover { background: #f9d6d0; }
+  .spacer { flex: 1; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--primary); color: #fff;
+    padding: .65rem 1.3rem; border-radius: 8px;
+    font-size: .85rem; font-weight: 500;
+    opacity: 0; transition: all .3s ease; z-index: 100;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--accent); }
+
+  /* ── Summary cards ── */
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem; color: var(--primary);
+    margin: 2rem 0 .8rem; padding-bottom: .4rem;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .75rem;
+  }
+  .summary-card {
+    background: var(--card);
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: .75rem 1rem; box-shadow: var(--shadow);
+  }
+  .summary-card h4 { font-size: .9rem; margin-bottom: .4rem; color: var(--primary); }
+  .summary-card ul { list-style: none; }
+  .summary-card li {
+    font-size: .82rem; color: var(--text-light);
+    padding: .2rem 0; border-bottom: 1px solid #f0ede8;
+  }
+  .summary-card li:last-child { border-bottom: none; }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; padding: .5rem; }
+    .actions, .info-bar, .toast, .api-badge, .btn-row-delete { display: none !important; }
+    .table-wrap { box-shadow: none; border: 1px solid #ccc; }
+    thead { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .summary-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .info-bar { flex-direction: column; }
+    .actions { flex-direction: column; }
+    .spacer { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>pHARe — Attribution des entretiens</h1>
+    <p>Réunion avec la Direction</p>
+    <span class="api-badge offline" id="api-status">⏳ Connexion…</span>
+  </header>
+
+  <!-- Infos de la réunion -->
+  <div class="info-bar">
+    <div class="field">
+      <span class="field-label">Date réunion</span>
+      <input type="date" id="reunion-date">
+    </div>
+    <div class="field">
+      <span class="field-label">Classe / Niveau</span>
+      <input type="text" id="reunion-classe" placeholder="Ex : 6ème B">
+    </div>
+  </div>
+
+  <!-- Tableau d'attribution -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Membre pHARe</th>
+          <th>Type</th>
+          <th>Élève</th>
+          <th>Date entretien</th>
+          <th>Heure</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <!-- Lignes dynamiques -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Boutons -->
+  <div class="actions">
+    <button class="btn btn-outline" onclick="addRow()">＋ Ajouter une ligne</button>
+    <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer</button>
+    <span class="spacer"></span>
+    <button class="btn btn-ghost" onclick="exportJSON()">📄 JSON</button>
+    <button class="btn btn-ghost" onclick="printReport()">🖨️ Imprimer</button>
+    <button class="btn btn-danger" onclick="clearAll()">🗑️ Tout effacer</button>
+  </div>
+
+  <!-- Résumé par membre -->
+  <h2 class="section-title">Résumé par membre</h2>
+  <div class="summary-grid" id="summary-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ══════════════════════════════════════════════════════
+  //  CONFIGURATION
+  // ══════════════════════════════════════════════════════
+
+  const API_URL     = 'http://localhost:8080/api/cas';
+  const STORAGE_KEY = 'phare_reunion';
+
+  const MEMBRES = [
+    '', 'Sammy K. Magbo', 'Anne-Marie L.', 'Bertrand P.',
+    'Caroline D.', 'David M.', 'Élodie R.', 'François T.',
+    'Gabrielle S.', 'Hugo V.', 'Isabelle C.', 'Julien B.',
+    'Karine F.', 'Laurent N.', 'Marie-Claire A.'
+  ];
+
+  const TYPES = [
+    { value: '', label: 'Choisir…' },
+    { value: 'CIBLE',  label: '🔴 Cible (victime)' },
+    { value: 'TEMOIN', label: '🟡 Témoin' },
+    { value: 'PI',     label: '🟣 PI (intimidateur)' }
+  ];
+
+  // Mapping vers l'API existante
+  const TYPE_TO_API = { CIBLE: 'VICTIME', TEMOIN: 'TEMOIN', PI: 'INTIMIDATEUR' };
+  const TYPE_FROM_API = { VICTIME: 'CIBLE', TEMOIN: 'TEMOIN', INTIMIDATEUR: 'PI' };
+
+  let rowCount = 0;
+  let apiOnline = false;
+
+  // ══════════════════════════════════════════════════════
+  //  INIT
+  // ══════════════════════════════════════════════════════
+
+  (async function init() {
+    const now = new Date();
+    document.getElementById('reunion-date').value = now.toISOString().slice(0, 10);
+    await loadData();
+    if (document.querySelectorAll('#table-body tr:not(.empty-row)').length === 0) {
+      for (let i = 0; i < 3; i++) addRow();
+    }
+    updateSummary();
+  })();
+
+  // ══════════════════════════════════════════════════════
+  //  API LAYER
+  // ══════════════════════════════════════════════════════
+
+  async function api(url, opts = {}) {
+    try {
+      const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+      apiOnline = true;
+      showApiStatus(true);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      apiOnline = false;
+      showApiStatus(false);
+      return null;
+    }
+  }
+
+  function showApiStatus(on) {
+    const el = document.getElementById('api-status');
+    el.textContent = on ? '🟢 API connectée' : '🔴 Mode hors-ligne';
+    el.className = 'api-badge ' + (on ? 'online' : 'offline');
+  }
+
+  async function loadData() {
+    const data = await api(API_URL);
+    if (data && data.length > 0) {
+      // Convertir les cas API en lignes de tableau
+      data.forEach(cas => {
+        cas.eleves.forEach(e => {
+          addRow();
+          const row = document.querySelector(`#row-${rowCount}`);
+          if (row) {
+            row.querySelector('[data-f="membre"]').value = e.membre || '';
+            const ft = TYPE_FROM_API[e.type] || e.type;
+            row.querySelector('[data-f="type"]').value = ft;
+            row.querySelector('[data-f="eleve"]').value = e.nom;
+            row.querySelector('[data-f="date"]').value = cas.date || '';
+            row.querySelector('[data-f="heure"]').value = cas.heure || '';
+            updateRowColor(row);
+          }
+        });
+      });
+    } else {
+      // Fallback localStorage
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      saved.forEach(r => {
+        addRow();
+        const row = document.querySelector(`#row-${rowCount}`);
+        if (row) {
+          row.querySelector('[data-f="membre"]').value = r.membre || '';
+          row.querySelector('[data-f="type"]').value = r.type || '';
+          row.querySelector('[data-f="eleve"]').value = r.eleve || '';
+          row.querySelector('[data-f="date"]').value = r.date || '';
+          row.querySelector('[data-f="heure"]').value = r.heure || '';
+          updateRowColor(row);
+        }
+      });
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  TOAST
+  // ══════════════════════════════════════════════════════
+
+  function toast(msg, err = false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (err ? ' error' : '');
+    setTimeout(() => el.className = 'toast', 2500);
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  TABLE — Ajouter / Supprimer / Mettre à jour
+  // ══════════════════════════════════════════════════════
+
+  function addRow() {
+    const tbody = document.getElementById('table-body');
+    const empty = tbody.querySelector('.empty-row');
+    if (empty) empty.remove();
+
+    rowCount++;
+    const id = rowCount;
+    const tr = document.createElement('tr');
+    tr.id = `row-${id}`;
+
+    const membreOpts = MEMBRES.map(m =>
+      `<option value="${m}"${m === '' ? ' disabled selected' : ''}>${m || 'Sélectionner…'}</option>`
+    ).join('');
+
+    const typeOpts = TYPES.map(t =>
+      `<option value="${t.value}"${t.value === '' ? ' disabled selected' : ''}>${t.label}</option>`
+    ).join('');
+
+    const defaultDate = document.getElementById('reunion-date').value || '';
+
+    tr.innerHTML = `
+      <td><span class="num">${id}</span></td>
+      <td><select data-f="membre">${membreOpts}</select></td>
+      <td><select data-f="type" onchange="updateRowColor(this.closest('tr')); updateSummary()">${typeOpts}</select></td>
+      <td><input type="text" data-f="eleve" placeholder="Prénom Nom"></td>
+      <td><input type="date" data-f="date" value="${defaultDate}"></td>
+      <td><input type="time" data-f="heure" value=""></td>
+      <td><button class="btn-row-delete" title="Supprimer" onclick="deleteRow(${id})">✕</button></td>
+    `;
+
+    tbody.appendChild(tr);
+
+    // Mettre à jour le résumé quand on change un champ
+    tr.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', updateSummary);
+      el.addEventListener('input', updateSummary);
+    });
+  }
+
+  function deleteRow(id) {
+    const row = document.getElementById(`row-${id}`);
+    if (row) {
+      row.style.opacity = '0';
+      row.style.transition = 'opacity .2s';
+      setTimeout(() => {
+        row.remove();
+        renumberRows();
+        updateSummary();
+        if (document.querySelectorAll('#table-body tr').length === 0) showEmpty();
+      }, 200);
+    }
+  }
+
+  function updateRowColor(row) {
+    const type = row.querySelector('[data-f="type"]').value;
+    row.className = '';
+    if (type) row.classList.add(`row-${type.toLowerCase()}`);
+  }
+
+  function renumberRows() {
+    document.querySelectorAll('#table-body tr .num').forEach((el, i) => {
+      el.textContent = i + 1;
+    });
+  }
+
+  function showEmpty() {
+    const tbody = document.getElementById('table-body');
+    const tr = document.createElement('tr');
+    tr.className = 'empty-row';
+    tr.innerHTML = '<td colspan="7">Aucune ligne. Cliquez sur « ＋ Ajouter une ligne ».</td>';
+    tbody.appendChild(tr);
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  COLLECTE & VALIDATION
+  // ══════════════════════════════════════════════════════
+
+  function collectRows() {
+    const rows = document.querySelectorAll('#table-body tr:not(.empty-row)');
+    const data = [];
+    let valid = true;
+
+    rows.forEach(row => {
+      const membre = row.querySelector('[data-f="membre"]').value;
+      const type   = row.querySelector('[data-f="type"]').value;
+      const eleve  = row.querySelector('[data-f="eleve"]').value.trim();
+      const date   = row.querySelector('[data-f="date"]').value;
+      const heure  = row.querySelector('[data-f="heure"]').value;
+
+      // Marquer les champs invalides
+      const eleveInput = row.querySelector('[data-f="eleve"]');
+      const typeSelect = row.querySelector('[data-f="type"]');
+
+      if (!eleve) { eleveInput.classList.add('invalid'); valid = false; }
+      else eleveInput.classList.remove('invalid');
+
+      if (!type) { typeSelect.classList.add('invalid'); valid = false; }
+      else typeSelect.classList.remove('invalid');
+
+      data.push({ membre, type, eleve, date, heure });
+    });
+
+    return { data, valid };
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  ENREGISTRER — vers API + localStorage
+  // ══════════════════════════════════════════════════════
+
+  async function saveAll() {
+    const { data, valid } = collectRows();
+
+    if (data.length === 0) { toast('Ajoutez au moins une ligne.', true); return; }
+    if (!valid) { toast('Remplissez le nom et le type de chaque élève.', true); return; }
+
+    // Sauvegarder en localStorage (toujours)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+    // Grouper par date+heure pour créer des "cas" compatibles avec l'API
+    const grouped = {};
+    data.forEach(r => {
+      const key = `${r.date || 'sans-date'}_${r.heure || 'sans-heure'}`;
+      if (!grouped[key]) grouped[key] = { date: r.date, heure: r.heure, eleves: [] };
+      grouped[key].eleves.push({
+        nom: r.eleve,
+        type: TYPE_TO_API[r.type] || r.type,
+        membre: r.membre
+      });
+    });
+
+    // Envoyer chaque groupe comme un cas à l'API
+    if (apiOnline || !document.getElementById('api-status').classList.contains('offline')) {
+      let success = true;
+      for (const cas of Object.values(grouped)) {
+        const result = await api(API_URL, {
+          method: 'POST',
+          body: JSON.stringify(cas)
+        });
+        if (!result) success = false;
+      }
+      if (success && apiOnline) {
+        toast('Données enregistrées (API + local) !');
+      } else if (!apiOnline) {
+        toast('Enregistré en local (API indisponible).');
+      }
+    } else {
+      toast('Enregistré en local.');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  RÉSUMÉ PAR MEMBRE
+  // ══════════════════════════════════════════════════════
+
+  function updateSummary() {
+    const { data } = collectRows();
+    const grid = document.getElementById('summary-grid');
+
+    // Grouper par membre
+    const byMember = {};
+    data.forEach(r => {
+      if (!r.membre || !r.eleve) return;
+      if (!byMember[r.membre]) byMember[r.membre] = [];
+      byMember[r.membre].push(r);
+    });
+
+    if (Object.keys(byMember).length === 0) {
+      grid.innerHTML = '<p style="color:var(--text-light);font-size:.85rem;font-style:italic">Remplissez le tableau pour voir le résumé.</p>';
+      return;
+    }
+
+    grid.innerHTML = Object.entries(byMember).map(([membre, rows]) => {
+      const lis = rows.map(r => {
+        const badgeClass = `badge-${r.type}`;
+        const label = TYPES.find(t => t.value === r.type)?.label?.replace(/[🔴🟡🟣] /, '') || r.type;
+        const time = r.heure ? ` à ${r.heure}` : '';
+        const date = r.date ? formatDate(r.date) : '';
+        return `<li>
+          <span class="type-badge ${badgeClass}">${label}</span>
+          <strong>${r.eleve}</strong>
+          ${date ? `<br><span style="font-size:.75rem;color:var(--text-light)">${date}${time}</span>` : ''}
+        </li>`;
+      }).join('');
+      return `<div class="summary-card"><h4>${membre} <span style="font-size:.75rem;color:var(--text-light)">(${rows.length} entretien${rows.length > 1 ? 's' : ''})</span></h4><ul>${lis}</ul></div>`;
+    }).join('');
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  EXPORT / IMPRESSION / RESET
+  // ══════════════════════════════════════════════════════
+
+  function exportJSON() {
+    const { data } = collectRows();
+    if (data.length === 0) { toast('Rien à exporter.', true); return; }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `phare_reunion_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Export JSON téléchargé.');
+  }
+
+  function printReport() { window.print(); }
+
+  function clearAll() {
+    if (!confirm('Effacer toutes les lignes ?')) return;
+    document.getElementById('table-body').innerHTML = '';
+    rowCount = 0;
+    localStorage.removeItem(STORAGE_KEY);
+    showEmpty();
+    updateSummary();
+    toast('Tableau effacé.');
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  UTILITAIRE
+  // ══════════════════════════════════════════════════════
+
+  function formatDate(str) {
+    if (!str) return '';
+    const [y, m, d] = str.split('-');
+    return `${d}/${m}/${y}`;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pHARe — Gestion de cas de harcèlement</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f1ec;
+    --card: #ffffff;
+    --primary: #1a5632;
+    --primary-hover: #14442a;
+    --primary-light: #e8f0eb;
+    --accent: #c0392b;
+    --accent-light: #fdf0ee;
+    --text: #2c2c2c;
+    --text-light: #6b6b6b;
+    --border: #ddd5ca;
+    --shadow: 0 2px 12px rgba(0,0,0,.06);
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { max-width: 720px; margin: 0 auto; }
+
+  /* ── Header ── */
+  header { text-align: center; margin-bottom: 2rem; }
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    color: var(--primary);
+    letter-spacing: -.5px;
+  }
+  header p { color: var(--text-light); margin-top: .35rem; font-size: .95rem; }
+
+  /* ── API status badge ── */
+  .api-badge {
+    display: inline-block; margin-top: .5rem;
+    font-size: .72rem; font-weight: 600; padding: .25rem .7rem;
+    border-radius: 20px; letter-spacing: .3px;
+  }
+  .api-badge.online  { background: #e8f0eb; color: #1a5632; }
+  .api-badge.offline { background: #fdf0ee; color: #c0392b; }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 2px solid var(--primary-light);
+  }
+
+  /* ── Labels ── */
+  label.field-label {
+    font-size: .8rem; font-weight: 700; color: var(--text);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+
+  /* ── Global fields ── */
+  .global-fields { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .global-fields .field { flex: 1; display: flex; flex-direction: column; gap: .4rem; }
+  .global-fields input {
+    padding: .6rem .75rem;
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    font-family: inherit; font-size: .95rem;
+    background: var(--card); transition: border-color .2s;
+  }
+  .global-fields input:focus { outline: none; border-color: var(--primary); }
+
+  /* ── Student cards ── */
+  #students-list { display: flex; flex-direction: column; gap: 1rem; }
+  .student-card {
+    background: var(--card);
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: 1rem 1.25rem; box-shadow: var(--shadow);
+    display: grid; grid-template-columns: 1fr 1fr 1fr auto;
+    gap: .75rem; align-items: end;
+    animation: slideIn .25s ease;
+  }
+  .student-card.error { border-color: var(--accent); background: var(--accent-light); }
+  .field-error { font-size: .75rem; color: var(--accent); font-weight: 500; margin-top: .15rem; display: none; }
+  .field-error.visible { display: block; }
+  .global-fields .field-error { font-size: .78rem; }
+  .global-fields input.invalid,
+  .student-card input.invalid,
+  .student-card select.invalid { border-color: var(--accent); background: var(--accent-light); }
+  .error-summary {
+    background: var(--accent-light); border: 1.5px solid var(--accent);
+    border-radius: var(--radius); padding: .75rem 1rem;
+    margin-bottom: 1rem; font-size: .88rem; color: var(--accent);
+    display: none; line-height: 1.5;
+  }
+  .error-summary.visible { display: block; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .student-card .field { display: flex; flex-direction: column; gap: .4rem; }
+  .student-card input,
+  .student-card select {
+    padding: .55rem .65rem;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: .9rem;
+    background: #fafaf8; transition: border-color .2s;
+  }
+  .student-card input:focus,
+  .student-card select:focus { outline: none; border-color: var(--primary); }
+  .btn-delete {
+    background: none; border: none; color: var(--accent);
+    font-size: 1.25rem; cursor: pointer; padding: .4rem;
+    border-radius: 6px; transition: background .15s;
+    align-self: end; margin-bottom: .15rem;
+  }
+  .btn-delete:hover { background: rgba(192,57,43,.08); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 2rem 1rem;
+    color: var(--text-light); font-size: .95rem;
+    border: 2px dashed var(--border); border-radius: var(--radius); background: var(--card);
+  }
+
+  /* ── Buttons ── */
+  .actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .7rem 1.4rem; border: none; border-radius: var(--radius);
+    font-family: inherit; font-size: .9rem; font-weight: 500;
+    cursor: pointer; transition: background .2s, transform .15s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-secondary:hover { background: var(--primary-light); }
+  .btn-export { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-export:hover { background: #eee8e0; }
+  .btn-print { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-print:hover { background: #eee8e0; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--primary); color: #fff;
+    padding: .75rem 1.5rem; border-radius: var(--radius);
+    font-size: .9rem; font-weight: 500;
+    opacity: 0; transition: all .3s ease; z-index: 100;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--accent); }
+
+  /* ── History ── */
+  .history-list { display: flex; flex-direction: column; gap: .75rem; }
+  .history-card {
+    background: var(--card);
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    padding: .85rem 1.1rem; box-shadow: var(--shadow);
+  }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem; }
+  .history-date { font-weight: 700; font-size: .95rem; }
+  .history-count { font-size: .8rem; color: var(--text-light); background: var(--primary-light); padding: .2rem .6rem; border-radius: 20px; }
+  .history-students { font-size: .85rem; color: var(--text-light); line-height: 1.8; }
+  .history-tag {
+    display: inline-flex; align-items: center; gap: .25rem;
+    font-size: .72rem; font-weight: 700;
+    padding: .2rem .55rem; border-radius: 20px; margin-left: .35rem;
+    text-transform: uppercase; letter-spacing: .3px; vertical-align: middle;
+  }
+  .tag-victime { background: #fdecea; color: #c0392b; border: 1px solid #f5c6cb; }
+  .tag-temoin { background: #fef9e7; color: #9a7d0a; border: 1px solid #f0e199; }
+  .tag-intimidateur { background: #f0e0f7; color: #6c2d8b; border: 1px solid #d5b8e8; }
+  .student-card select[data-field="type"] { font-weight: 500; }
+  .student-card[data-type="victime"] { border-left: 4px solid #c0392b; }
+  .student-card[data-type="temoin"] { border-left: 4px solid #d4ac0d; }
+  .student-card[data-type="intimidateur"] { border-left: 4px solid #7d3c98; }
+
+  /* ── Search bar ── */
+  .search-bar { display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem; }
+  .search-bar input {
+    flex: 1; padding: .6rem .85rem;
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    font-family: inherit; font-size: .9rem;
+    background: var(--card); transition: border-color .2s;
+  }
+  .search-bar input:focus { outline: none; border-color: var(--primary); }
+  .search-count { font-size: .8rem; color: var(--text-light); font-weight: 500; white-space: nowrap; }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .actions, .search-bar, .btn-sm, .edit-banner, .error-summary,
+    .btn-delete, .empty-state, .toast, #students-list, .global-fields,
+    .section-title, .api-badge { display: none !important; }
+    .container { max-width: 100%; }
+    header { margin-bottom: 1rem; }
+    .history-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; margin-bottom: .5rem; }
+  }
+
+  .history-actions { display: flex; gap: .5rem; margin-top: .5rem; }
+  .btn-sm {
+    font-size: .75rem; padding: .3rem .65rem; border-radius: 6px; border: none;
+    font-family: inherit; cursor: pointer; font-weight: 500; transition: background .15s;
+  }
+  .btn-sm.delete { background: var(--accent-light); color: var(--accent); }
+  .btn-sm.delete:hover { background: #f9d6d0; }
+  .btn-sm.edit { background: var(--primary-light); color: var(--primary); }
+  .btn-sm.edit:hover { background: #d0e4d6; }
+  .edit-banner {
+    display: none; align-items: center; justify-content: space-between;
+    background: #fff8e1; border: 1.5px solid #f9c74f; border-radius: var(--radius);
+    padding: .65rem 1rem; margin-bottom: 1rem; font-size: .9rem; font-weight: 500;
+  }
+  .edit-banner.active { display: flex; }
+  .edit-banner .btn-cancel {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: .3rem .7rem; font-family: inherit; font-size: .8rem;
+    cursor: pointer; font-weight: 500;
+  }
+  .edit-banner .btn-cancel:hover { background: #f4f1ec; }
+  .empty-history {
+    text-align: center; padding: 1.5rem;
+    color: var(--text-light); font-size: .9rem; font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    .student-card { grid-template-columns: 1fr 1fr; }
+    .btn-delete { grid-column: 2; justify-self: end; }
+    .actions { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Projet pHARe</h1>
+    <p>Gestion des cas de harcèlement scolaire</p>
+    <span class="api-badge offline" id="api-status">⏳ Connexion…</span>
+  </header>
+
+  <!-- Champs globaux -->
+  <div class="global-fields">
+    <div class="field">
+      <label class="field-label" for="date">Date</label>
+      <input type="date" id="date">
+      <div class="field-error" id="error-date">Veuillez renseigner la date.</div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="heure">Heure</label>
+      <input type="time" id="heure">
+      <div class="field-error" id="error-heure">Veuillez renseigner l'heure.</div>
+    </div>
+  </div>
+
+  <!-- Résumé des erreurs -->
+  <div class="error-summary" id="error-summary"></div>
+
+  <!-- Bannière mode édition -->
+  <div class="edit-banner" id="edit-banner">
+    <span>✏️ Modification du cas en cours…</span>
+    <button class="btn-cancel" onclick="cancelEdit()">Annuler</button>
+  </div>
+
+  <!-- Liste des élèves -->
+  <div id="students-list"></div>
+
+  <!-- Boutons -->
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="addStudent()">＋ Ajouter un élève</button>
+    <button class="btn btn-primary" onclick="saveCase()">💾 Enregistrer</button>
+    <button class="btn btn-export" onclick="exportJSON()">📄 Exporter JSON</button>
+    <button class="btn btn-print" onclick="printReport()">🖨️ Imprimer</button>
+  </div>
+
+  <!-- Historique -->
+  <h2 class="section-title">Historique des cas</h2>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Rechercher un élève par nom…" oninput="filterHistory()">
+    <span class="search-count" id="search-count"></span>
+  </div>
+  <div id="history-list" class="history-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ══════════════════════════════════════════════════════════
+  //  CONFIGURATION
+  // ══════════════════════════════════════════════════════════
+
+  const API_URL     = 'http://localhost:8080/api/cas';
+  const STORAGE_KEY = 'phare_cases';  // Fallback localStorage
+
+  const MEMBRES_PHARE = [
+    'Sélectionner…',
+    'Sammy K. Magbo',
+    'Membre pHARe 2',
+    'Membre pHARe 3',
+    'Membre pHARe 4'
+  ];
+
+  // Mapping des types : frontend (minuscule) ↔ backend (MAJUSCULE)
+  const TO_BACK  = { victime:'VICTIME', temoin:'TEMOIN', intimidateur:'INTIMIDATEUR' };
+  const TO_FRONT = { VICTIME:'victime', TEMOIN:'temoin', INTIMIDATEUR:'intimidateur' };
+
+  let studentCount = 0;
+  let editingId    = null;   // ID du cas en cours de modification
+  let cachedCases  = [];     // Données chargées (API ou localStorage)
+  let apiOnline    = false;
+
+  // ══════════════════════════════════════════════════════════
+  //  INITIALISATION
+  // ══════════════════════════════════════════════════════════
+
+  (async function init() {
+    const now = new Date();
+    document.getElementById('date').value  = now.toISOString().slice(0, 10);
+    document.getElementById('heure').value = now.toTimeString().slice(0, 5);
+    renderEmptyState();
+
+    // Effacer erreurs date/heure en temps réel
+    document.getElementById('date').addEventListener('change', function() {
+      this.classList.remove('invalid');
+      document.getElementById('error-date').classList.remove('visible');
+    });
+    document.getElementById('heure').addEventListener('change', function() {
+      this.classList.remove('invalid');
+      document.getElementById('error-heure').classList.remove('visible');
+    });
+
+    await loadCases();
+  })();
+
+  // ══════════════════════════════════════════════════════════
+  //  COUCHE API — fetch() avec fallback localStorage
+  // ══════════════════════════════════════════════════════════
+
+  /**
+   * Appel HTTP générique vers l'API Spring Boot.
+   * @returns {Object|null} Données JSON ou null si erreur/indisponible.
+   */
+  async function api(url, options = {}) {
+    try {
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
+      apiOnline = true;
+      showApiStatus(true);
+      if (!res.ok) {
+        console.error('API error:', res.status, await res.text());
+        return null;
+      }
+      return await res.json();
+    } catch (err) {
+      console.warn('API indisponible — fallback localStorage.', err.message);
+      apiOnline = false;
+      showApiStatus(false);
+      return null;
+    }
+  }
+
+  /** Met à jour le badge de statut dans le header. */
+  function showApiStatus(connected) {
+    const el = document.getElementById('api-status');
+    el.textContent = connected ? '🟢 API connectée' : '🔴 Mode hors-ligne';
+    el.className   = 'api-badge ' + (connected ? 'online' : 'offline');
+  }
+
+  /**
+   * Charge les cas depuis l'API (GET).
+   * Si indisponible, lit le localStorage.
+   * Synchronise toujours le localStorage avec la source de vérité.
+   */
+  async function loadCases() {
+    const data = await api(API_URL);
+    if (data !== null) {
+      cachedCases = data;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } else {
+      cachedCases = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+    renderHistory();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  TOAST
+  // ══════════════════════════════════════════════════════════
+
+  function toast(msg, isError = false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => el.className = 'toast', 2500);
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  FORMULAIRE — Gestion des élèves
+  // ══════════════════════════════════════════════════════════
+
+  function renderEmptyState() {
+    const list = document.getElementById('students-list');
+    if (list.querySelectorAll('.student-card').length === 0) {
+      list.innerHTML = '<div class="empty-state">Aucun élève ajouté. Cliquez sur « ＋ Ajouter un élève » pour commencer.</div>';
+    }
+  }
+
+  function addStudent() {
+    const list = document.getElementById('students-list');
+    const empty = list.querySelector('.empty-state');
+    if (empty) empty.remove();
+
+    studentCount++;
+    const id = studentCount;
+    const card = document.createElement('div');
+    card.className = 'student-card';
+    card.id = `student-${id}`;
+
+    const opts = MEMBRES_PHARE
+      .map((m, i) => `<option value="${i === 0 ? '' : m}"${i === 0 ? ' disabled selected' : ''}>${m}</option>`)
+      .join('');
+
+    card.innerHTML = `
+      <div class="field">
+        <label class="field-label">Nom de l'élève</label>
+        <input type="text" placeholder="Prénom Nom" data-field="nom">
+        <div class="field-error" data-error="nom">Le nom est obligatoire.</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Type</label>
+        <select data-field="type">
+          <option value="" disabled selected>Choisir…</option>
+          <option value="victime">Victime</option>
+          <option value="temoin">Témoin</option>
+          <option value="intimidateur">Intimidateur</option>
+        </select>
+        <div class="field-error" data-error="type">Le type est obligatoire.</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Membre pHARe</label>
+        <select data-field="membre">${opts}</select>
+      </div>
+      <button class="btn-delete" title="Supprimer" onclick="removeStudent(${id})">✕</button>
+    `;
+    list.appendChild(card);
+    card.querySelector('input').focus();
+
+    // Effacer erreurs en temps réel
+    card.querySelector('[data-field="nom"]').addEventListener('input', function() {
+      this.classList.remove('invalid');
+      card.querySelector('[data-error="nom"]').classList.remove('visible');
+      card.classList.remove('error');
+    });
+    card.querySelector('[data-field="type"]').addEventListener('change', function() {
+      this.classList.remove('invalid');
+      card.querySelector('[data-error="type"]').classList.remove('visible');
+      card.classList.remove('error');
+      card.setAttribute('data-type', this.value);
+    });
+  }
+
+  function removeStudent(id) {
+    const card = document.getElementById(`student-${id}`);
+    if (card) {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-8px)';
+      card.style.transition = 'all .2s ease';
+      setTimeout(() => { card.remove(); renderEmptyState(); }, 200);
+    }
+  }
+
+  /**
+   * Ajoute un élève pré-rempli (pour l'édition).
+   * Gère les types MAJUSCULE (API) et minuscule (localStorage).
+   */
+  function addStudentWithData(data) {
+    addStudent();
+    const card = document.getElementById(`student-${studentCount}`);
+    card.querySelector('[data-field="nom"]').value = data.nom;
+    const typeLower = TO_FRONT[data.type] || data.type;
+    card.querySelector('[data-field="type"]').value = typeLower;
+    card.setAttribute('data-type', typeLower);
+    if (data.membre) card.querySelector('[data-field="membre"]').value = data.membre;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  VALIDATION
+  // ══════════════════════════════════════════════════════════
+
+  function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(e => e.classList.remove('visible'));
+    document.querySelectorAll('.invalid').forEach(e => e.classList.remove('invalid'));
+    document.querySelectorAll('.student-card').forEach(e => e.classList.remove('error'));
+    const s = document.getElementById('error-summary');
+    s.classList.remove('visible');
+    s.textContent = '';
+  }
+
+  /**
+   * Collecte et valide les données des élèves.
+   * Les types sont convertis en MAJUSCULE pour l'API.
+   */
+  function collectData() {
+    clearErrors();
+    const cards = document.querySelectorAll('.student-card');
+    const students = [];
+    const errors = [];
+    let idx = 0;
+
+    cards.forEach(card => {
+      idx++;
+      const nomInput   = card.querySelector('[data-field="nom"]');
+      const typeSelect = card.querySelector('[data-field="type"]');
+      const membre     = card.querySelector('[data-field="membre"]').value;
+      const nom  = nomInput.value.trim();
+      const type = typeSelect.value;
+      let ok = true;
+
+      if (!nom) {
+        nomInput.classList.add('invalid');
+        card.querySelector('[data-error="nom"]').classList.add('visible');
+        errors.push(`Élève ${idx} : nom manquant`);
+        ok = false;
+      }
+      if (!type) {
+        typeSelect.classList.add('invalid');
+        card.querySelector('[data-error="type"]').classList.add('visible');
+        errors.push(`Élève ${idx} : type manquant`);
+        ok = false;
+      }
+
+      if (!ok) card.classList.add('error');
+      else students.push({ nom, type: TO_BACK[type] || type, membre });
+    });
+
+    return { valid: errors.length === 0, students, errors };
+  }
+
+  function showSummary(errors) {
+    const el = document.getElementById('error-summary');
+    el.innerHTML = '⚠️ ' + errors.join('<br>⚠️ ');
+    el.classList.add('visible');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  ENREGISTRER — POST (nouveau) ou PUT (modification)
+  // ══════════════════════════════════════════════════════════
+
+  async function saveCase() {
+    // Au moins un élève ?
+    if (document.querySelectorAll('.student-card').length === 0) {
+      showSummary(['Ajoutez au moins un élève avant d\'enregistrer.']);
+      toast('Aucun élève à enregistrer.', true);
+      return;
+    }
+
+    // Valider date / heure
+    const dateVal  = document.getElementById('date').value;
+    const heureVal = document.getElementById('heure').value;
+    const globalErr = [];
+
+    if (!dateVal) {
+      document.getElementById('date').classList.add('invalid');
+      document.getElementById('error-date').classList.add('visible');
+      globalErr.push('La date est obligatoire.');
+    }
+    if (!heureVal) {
+      document.getElementById('heure').classList.add('invalid');
+      document.getElementById('error-heure').classList.add('visible');
+      globalErr.push('L\'heure est obligatoire.');
+    }
+
+    // Valider élèves
+    const { valid, students, errors } = collectData();
+    const allErrors = [...globalErr, ...errors];
+
+    if (allErrors.length > 0) {
+      showSummary(allErrors);
+      toast('Veuillez corriger les erreurs.', true);
+      return;
+    }
+
+    const payload = { date: dateVal, heure: heureVal, eleves: students };
+
+    if (editingId) {
+      // ── PUT : modifier un cas existant ──
+      const result = await api(`${API_URL}/${editingId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+
+      if (result) {
+        toast('Cas modifié avec succès !');
+      } else if (!apiOnline) {
+        const idx = cachedCases.findIndex(c => c.id === editingId);
+        if (idx !== -1) cachedCases[idx] = { ...cachedCases[idx], ...payload };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedCases));
+        toast('Cas modifié (hors-ligne).');
+      } else {
+        toast('Erreur lors de la modification.', true);
+        return;
+      }
+
+      editingId = null;
+      document.getElementById('edit-banner').classList.remove('active');
+
+    } else {
+      // ── POST : créer un nouveau cas ──
+      const result = await api(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (result) {
+        toast('Cas enregistré avec succès !');
+      } else if (!apiOnline) {
+        cachedCases.unshift({ id: Date.now(), ...payload });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedCases));
+        toast('Cas enregistré (hors-ligne).');
+      } else {
+        toast('Erreur lors de l\'enregistrement.', true);
+        return;
+      }
+    }
+
+    resetForm();
+    await loadCases();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  ÉDITION — charger un cas dans le formulaire
+  // ══════════════════════════════════════════════════════════
+
+  function editCase(id) {
+    const c = cachedCases.find(x => x.id === id);
+    if (!c) return;
+
+    editingId = id;
+    document.getElementById('edit-banner').classList.add('active');
+    document.getElementById('date').value  = c.date;
+    document.getElementById('heure').value = c.heure;
+
+    document.getElementById('students-list').innerHTML = '';
+    studentCount = 0;
+    c.eleves.forEach(e => addStudentWithData(e));
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    document.getElementById('edit-banner').classList.remove('active');
+    resetForm();
+    toast('Modification annulée.');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  SUPPRIMER — DELETE vers l'API
+  // ══════════════════════════════════════════════════════════
+
+  async function deleteCase(id) {
+    if (!confirm('Supprimer ce cas de l\'historique ?')) return;
+
+    const result = await api(`${API_URL}/${id}`, { method: 'DELETE' });
+
+    if (result) {
+      toast('Cas supprimé.');
+    } else if (!apiOnline) {
+      cachedCases = cachedCases.filter(c => c.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cachedCases));
+      toast('Cas supprimé (hors-ligne).');
+    } else {
+      toast('Erreur lors de la suppression.', true);
+      return;
+    }
+
+    await loadCases();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  RÉINITIALISATION
+  // ══════════════════════════════════════════════════════════
+
+  function resetForm() {
+    clearErrors();
+    document.getElementById('students-list').innerHTML = '';
+    const now = new Date();
+    document.getElementById('date').value  = now.toISOString().slice(0, 10);
+    document.getElementById('heure').value = now.toTimeString().slice(0, 5);
+    studentCount = 0;
+    renderEmptyState();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  EXPORT JSON
+  // ══════════════════════════════════════════════════════════
+
+  function exportJSON() {
+    if (cachedCases.length === 0) { toast('Aucun cas à exporter.', true); return; }
+    const blob = new Blob([JSON.stringify(cachedCases, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `phare_export_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Export JSON téléchargé.');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  HISTORIQUE — affichage, recherche, tags
+  // ══════════════════════════════════════════════════════════
+
+  /** Helpers pour les deux formats de type (API MAJUSCULE / local minuscule) */
+  function typeIcon(t)  { return { VICTIME:'🔴', TEMOIN:'🟡', INTIMIDATEUR:'🟣', victime:'🔴', temoin:'🟡', intimidateur:'🟣' }[t] || ''; }
+  function typeLabel(t) { return { VICTIME:'Victime', TEMOIN:'Témoin', INTIMIDATEUR:'Intimidateur', victime:'Victime', temoin:'Témoin', intimidateur:'Intimidateur' }[t] || t; }
+  function typeClass(t) { return TO_FRONT[t] || t; }
+
+  function renderHistory() {
+    const container = document.getElementById('history-list');
+    const query = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+
+    const filtered = query
+      ? cachedCases.filter(c => c.eleves.some(e => e.nom.toLowerCase().includes(query)))
+      : cachedCases;
+
+    const countEl = document.getElementById('search-count');
+    countEl.textContent = query
+      ? `${filtered.length} résultat${filtered.length !== 1 ? 's' : ''}`
+      : (cachedCases.length ? `${cachedCases.length} cas` : '');
+
+    if (filtered.length === 0) {
+      container.innerHTML = query
+        ? '<div class="empty-history">Aucun cas trouvé pour cette recherche.</div>'
+        : '<div class="empty-history">Aucun cas enregistré pour le moment.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(c => {
+      const lines = c.eleves.map(e =>
+        `${e.nom} <span class="history-tag tag-${typeClass(e.type)}">${typeIcon(e.type)} ${typeLabel(e.type)}</span>${e.membre ? ' → ' + e.membre : ''}`
+      ).join('<br>');
+      return `
+        <div class="history-card">
+          <div class="history-header">
+            <span class="history-date">${formatDate(c.date)} à ${c.heure}</span>
+            <span class="history-count">${c.eleves.length} élève${c.eleves.length > 1 ? 's' : ''}</span>
+          </div>
+          <div class="history-students">${lines}</div>
+          <div class="history-actions">
+            <button class="btn-sm edit" onclick="editCase(${c.id})">✏️ Modifier</button>
+            <button class="btn-sm delete" onclick="deleteCase(${c.id})">Supprimer</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterHistory() { renderHistory(); }
+
+  // ══════════════════════════════════════════════════════════
+  //  IMPRESSION HTML
+  // ══════════════════════════════════════════════════════════
+
+  function printReport() {
+    if (cachedCases.length === 0) { toast('Aucun cas à imprimer.', true); return; }
+
+    const colors = { VICTIME:'#c0392b', TEMOIN:'#9a7d0a', INTIMIDATEUR:'#6c2d8b' };
+    const bgs    = { VICTIME:'#fdecea', TEMOIN:'#fef9e7', INTIMIDATEUR:'#f0e0f7' };
+
+    const rows = cachedCases.map(c => {
+      const trs = c.eleves.map(e => {
+        const key = TO_BACK[e.type] || e.type;
+        return `<tr>
+          <td style="padding:6px 10px;border:1px solid #ddd">${e.nom}</td>
+          <td style="padding:6px 10px;border:1px solid #ddd;text-align:center">
+            <span style="background:${bgs[key]};color:${colors[key]};padding:2px 8px;border-radius:12px;font-size:12px;font-weight:700">${typeIcon(e.type)} ${typeLabel(e.type)}</span>
+          </td>
+          <td style="padding:6px 10px;border:1px solid #ddd">${e.membre || '—'}</td>
+        </tr>`;
+      }).join('');
+
+      return `<div style="margin-bottom:24px;page-break-inside:avoid">
+        <h3 style="margin:0 0 6px;color:#1a5632">${formatDate(c.date)} à ${c.heure}</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <thead><tr style="background:#e8f0eb">
+            <th style="padding:6px 10px;border:1px solid #ddd;text-align:left">Nom</th>
+            <th style="padding:6px 10px;border:1px solid #ddd;text-align:center">Type</th>
+            <th style="padding:6px 10px;border:1px solid #ddd;text-align:left">Membre pHARe</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+      <title>Rapport pHARe</title>
+      <style>body{font-family:'DM Sans',Helvetica,Arial,sans-serif;max-width:800px;margin:auto;padding:32px;color:#2c2c2c}
+      h1{color:#1a5632;font-size:24px;border-bottom:2px solid #e8f0eb;padding-bottom:8px}
+      .meta{color:#6b6b6b;font-size:13px;margin-bottom:24px}</style></head><body>
+      <h1>Projet pHARe — Rapport des cas</h1>
+      <p class="meta">Exporté le ${new Date().toLocaleDateString('fr-FR')} — ${cachedCases.length} cas enregistré${cachedCases.length > 1 ? 's' : ''}</p>
+      ${rows}</body></html>`;
+
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    w.print();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  UTILITAIRE
+  // ══════════════════════════════════════════════════════════
+
+  function formatDate(str) {
+    if (!str) return '';
+    const [y, m, d] = str.split('-');
+    return `${d}/${m}/${y}`;
+  }
+</script>
+</body>
+</html>
