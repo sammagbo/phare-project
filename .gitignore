@@ -1,0 +1,33 @@
+# ── Build ──
+target/
+build/
+*.jar
+*.war
+*.class
+
+# ── IDE ──
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+*~
+
+# ── Maven ──
+.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Logs ──
+*.log
+logs/
+
+# ── Node (si ajouté plus tard) ──
+node_modules/
