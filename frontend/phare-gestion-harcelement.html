@@ -150,6 +150,15 @@
   .btn-export:hover { background: #eee8e0; }
   .btn-print { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
   .btn-print:hover { background: #eee8e0; }
+  .btn-import { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-import:hover { background: var(--primary-light); }
+
+  /* ── iPad Optimizations ── */
+  @media (pointer: coarse) {
+    .btn { padding: .8rem 1.6rem; }
+    .student-card input, .student-card select, .global-fields input { padding: .8rem; font-size: 1rem; }
+    .btn-delete { font-size: 1.5rem; padding: .6rem; }
+  }
 
   /* ── Toast ── */
   .toast {
@@ -283,6 +292,8 @@
   <div class="actions">
     <button class="btn btn-secondary" onclick="addStudent()">＋ Ajouter un élève</button>
     <button class="btn btn-primary" onclick="saveCase()">💾 Enregistrer</button>
+    <button class="btn btn-import" onclick="triggerImport()">📂 Importar JSON</button>
+    <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImport(event)">
     <button class="btn btn-export" onclick="exportJSON()">📄 Exporter JSON</button>
     <button class="btn btn-print" onclick="printReport()">🖨️ Imprimer</button>
   </div>
@@ -719,6 +730,39 @@
     a.click();
     URL.revokeObjectURL(a.href);
     toast('Export JSON téléchargé.');
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  IMPORT JSON
+  // ══════════════════════════════════════════════════════════
+
+  function triggerImport() {
+    document.getElementById('import-file').click();
+  }
+
+  function processImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!Array.isArray(data)) throw new Error('Format invalide');
+        
+        if (confirm(`Importer ${data.length} cas ? Cela remplacera vos données locales.`)) {
+          cachedCases = data;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          renderHistory();
+          toast('Dados importados com sucesso!');
+        }
+      } catch (err) {
+        console.error(err);
+        toast('Erro ao ler arquivo JSON.', true);
+      }
+      event.target.value = ''; // Reset input
+    };
+    reader.readAsText(file);
   }
 
   // ══════════════════════════════════════════════════════════
