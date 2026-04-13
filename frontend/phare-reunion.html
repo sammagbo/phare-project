@@ -212,7 +212,40 @@
   .row-student.victime { border-left: 4px solid var(--victime); background: hsla(6, 63%, 46%, 0.01); }
   .row-student.temoin { border-left: 4px solid var(--temoin); background: hsla(45, 85%, 38%, 0.01); }
   .row-student.intimidateur { border-left: 4px solid var(--pi); background: hsla(282, 44%, 36%, 0.01); }
-fdfbff; border-left: 4px solid var(--pi); }
+
+  /* ── Case Grouping (Scheduled Section) ── */
+  .case-group-card {
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.03); overflow: hidden;
+    margin-bottom: 1.5rem; animation: slideIn .25s ease;
+  }
+  .case-group-header {
+    background: hsla(156, 50%, 15%, 0.03); padding: 1rem 1.25rem;
+    border-bottom: 1.5px solid var(--border); display: flex; 
+    justify-content: space-between; align-items: center;
+  }
+  .case-group-header h3 { font-family: 'Fraunces', serif; color: var(--primary); font-size: 1.15rem; margin: 0; }
+  .case-group-body { padding: 0.5rem 0; }
+  .case-group-footer {
+    display: flex; gap: 0.5rem; justify-content: flex-end; padding: 0.75rem 1.25rem;
+    background: hsla(30, 20%, 96%, 0.4); border-top: 1px solid var(--border);
+  }
+  .case-student-row {
+    display: grid; grid-template-columns: 100px 1.2fr 180px 160px auto;
+    gap: 1rem; align-items: center; padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid hsla(30, 20%, 90%, 0.5); font-size: 0.95rem;
+  }
+  .case-student-row:last-child { border-bottom: none; }
+  .case-student-row.victime { border-left: 4px solid var(--victime); }
+  .case-student-row.temoin { border-left: 4px solid var(--temoin); }
+  .case-student-row.intimidateur { border-left: 4px solid var(--pi); }
+  .case-student-badge {
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase; padding: 0.25rem 0.6rem;
+    border-radius: 20px; text-align: center; border: 1px solid; display: inline-block;
+  }
+  .csb-victime { background: hsla(6, 63%, 46%, 0.08); color: var(--victime); border-color: hsla(6, 63%, 46%, 0.2); }
+  .csb-temoin { background: hsla(45, 85%, 38%, 0.08); color: var(--temoin); border-color: hsla(45, 85%, 38%, 0.2); }
+  .csb-intimidateur { background: hsla(282, 44%, 36%, 0.08); color: var(--pi); border-color: hsla(282, 44%, 36%, 0.2); }
 
   .student-name { font-weight: 600; font-size: .88rem; }
   .student-type {
@@ -670,52 +703,80 @@ fdfbff; border-left: 4px solid var(--pi); }
   function renderScheduled() {
     const grid = document.getElementById('scheduled-grid');
     const section = document.getElementById('scheduled-section');
-    const scheduled = [];
+    const scheduledCases = [];
 
     allCases.forEach(cas => {
       const rd = reunionData[cas.id];
       if (!rd?.entretiens) return;
+      
+      const scheduledStudents = [];
+      let minSortKey = '9999-99-9999:99'; // effectively highest sorting key
+
       (cas.eleves || []).forEach((e, i) => {
         const ent = rd.entretiens[i];
         if (ent?.membre && ent?.date) {
-          scheduled.push({ casId: cas.id, studentIdx: i, student: e, entretien: ent });
+            scheduledStudents.push({ idx: i, student: e, entretien: ent });
+            const key = ent.date + (ent.heure || '99:99');
+            if (key < minSortKey) minSortKey = key;
         }
       });
+      
+      if (scheduledStudents.length > 0) {
+        scheduledCases.push({ cas: cas, students: scheduledStudents, sortKey: minSortKey });
+      }
     });
 
-    if (scheduled.length === 0) {
+    if (scheduledCases.length === 0) {
       section.style.display = 'none';
       return;
     }
 
     section.style.display = 'block';
     
-    // Sort by date then time
-    scheduled.sort((a, b) => {
-      const db = (a.entretien.date + a.entretien.heure).localeCompare(b.entretien.date + b.entretien.heure);
-      return db;
-    });
+    // Sort logically ascending early to late
+    scheduledCases.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
-    grid.innerHTML = scheduled.map((item, index) => {
-      const td = TYPE_DISPLAY[item.student.type] || { icon: '❓', label: item.student.type };
-      return `
-        <div class="dossier-card" data-type="${item.student.type}" style="--delay: ${index * 0.05}s">
-          <div class="dossier-tag">${td.label}</div>
-          <div class="dossier-date">📅 ${formatDate(item.entretien.date)} à ${item.entretien.heure || '--:--'}</div>
-          <div class="dossier-student" style="display:flex; flex-direction:column; gap:2px; align-items:flex-start;">
-            <div>${td.icon} ${item.student.nom} <span style="font-size: 0.85em; opacity: 0.8;">(${item.student.classe || 'N/A'})</span></div>
-            ${item.student.lie_a ? `<div style="font-size: .8em; opacity: 0.7; font-weight: 500; padding-left: 1.5rem;">Lié à: ${item.student.lie_a}</div>` : ''}
+    grid.innerHTML = scheduledCases.map((item, index) => {
+      // Create Earliest Date Header string
+      const sortedDates = [...item.students].sort((a,b) => (a.entretien.date + a.entretien.heure).localeCompare(b.entretien.date + b.entretien.heure));
+      const earliestStr = sortedDates[0] ? formatDate(sortedDates[0].entretien.date) : '';
+      
+      const rowsHtml = item.students.map(s => {
+        const td = TYPE_DISPLAY[s.student.type] || { icon: '❓', label: s.student.type };
+        const csbClass = \`csb-\${s.student.type.toLowerCase()}\`;
+        return \`
+          <div class="case-student-row \${s.student.type.toLowerCase()}">
+             <div><span class="case-student-badge \${csbClass}">\${td.icon} \${td.label}</span></div>
+             <div style="display:flex; flex-direction:column; justify-content:center;">
+               <div style="font-weight:700;">\${s.student.nom} <span style="font-size: 0.85em; opacity: 0.8;">(\${s.student.classe || 'N/A'})</span></div>
+               \${s.student.lie_a ? \`<div style="font-size: .7em; opacity: 0.65; margin-top: 2px;">Lié à: \${s.student.lie_a}</div>\` : ''}
+             </div>
+             <div style="font-size: 0.85rem; color: #555;">📅 \${formatDate(s.entretien.date)}<br>🕒 \${s.entretien.heure || '--:--'}</div>
+             <div style="font-size: 0.85rem; color: #555;">👤 \${s.entretien.membre}</div>
+             <div style="display:flex; gap:0.4rem; justify-content:flex-end;">
+                <button class="btn-icon" title="Modifier" data-action="edit" data-case="\${item.cas.id}" data-idx="\${s.idx}">✏️</button>
+                <button class="btn-icon delete" title="Retirer l'entretien" data-action="unschedule" data-case="\${item.cas.id}" data-idx="\${s.idx}">🗑️</button>
+             </div>
           </div>
-          <div class="dossier-membre">👤 Membre: ${item.entretien.membre}</div>
-          
-          <div class="dossier-actions">
-            <button class="btn-icon" title="Modifier" data-action="edit" data-case="${item.casId}" data-idx="${item.studentIdx}">✏️</button>
-            <button class="btn-icon delete" title="Supprimer" data-action="delete" data-case="${item.casId}" data-idx="${item.studentIdx}">🗑️</button>
-            <button class="btn-icon" title="Ajouter Témoin" data-action="add-temoin" data-case="${item.casId}">➕🟡</button>
-            <button class="btn-icon" title="Ajouter Intimidateur" data-action="add-intimidateur" data-case="${item.casId}">➕🟣</button>
+        \`;
+      }).join('');
+
+      return \`
+        <div class="case-group-card" style="animation-delay: \${index * 0.05}s">
+          <div class="case-group-header">
+             <h3>Dossier de Cas – \${earliestStr}</h3>
+             <span style="font-size: 0.85rem; color: var(--text-light); font-weight: 600;">\${item.students.length} entretien(s) programmé(s)</span>
+          </div>
+          <div class="case-group-body">
+             \${rowsHtml}
+          </div>
+          <div class="case-group-footer">
+            <button class="btn btn-ghost" title="Ajouter Témoin" data-action="add-temoin" data-case="\${item.cas.id}">➕🟡 Témoin</button>
+            <button class="btn btn-ghost" title="Ajouter Intimidateur" data-action="add-intimidateur" data-case="\${item.cas.id}">➕🟣 Intimidateur</button>
+            <button class="btn btn-outline delete" style="border-color: var(--accent); color: var(--accent); border-radius: 8px;" title="Supprimer le cas complet" data-action="delete-case" data-case="\${item.cas.id}">🗑️ Supprimer l'intégralité du Cas</button>
           </div>
         </div>
-      `;
+      \`;
     }).join('');
   }
 
@@ -730,7 +791,9 @@ fdfbff; border-left: 4px solid var(--pi); }
 
     if (action === 'edit') {
       window.editInterview(caseId, idx);
-    } else if (action === 'delete') {
+    } else if (action === 'unschedule') {
+      window.unscheduleInterview(caseId, idx);
+    } else if (action === 'delete-case') {
       window.deleteCaseAction(caseId);
     } else if (action === 'add-temoin') {
       window.quickAdd(caseId, 'temoin');
@@ -742,6 +805,24 @@ fdfbff; border-left: 4px solid var(--pi); }
   // --- Custom Modals ---
   function closeCustomModal() {
     document.getElementById('custom-modal').classList.remove('active');
+  }
+
+  // Logic to unschedule an individual student and send them back to pending
+  window.unscheduleInterview = function(caseId, idx) {
+    if(!confirm('Retirer cet élève du planning ? Il retournera dans la liste d\'attente.')) return;
+    if(reunionData[caseId] && reunionData[caseId].entretiens) {
+      if(reunionData[caseId].entretiens[idx]) {
+        delete reunionData[caseId].entretiens[idx].date;
+        delete reunionData[caseId].entretiens[idx].heure;
+        delete reunionData[caseId].entretiens[idx].membre;
+        localStorage.setItem(REUNIONS_KEY, JSON.stringify(reunionData));
+        renderAll();
+        toast("Entretien retiré du planning.");
+      }
+    }
+  };
+
+  function completeEdit() {
   }
 
   function openCustomModal(title, msg, showInput, selectOptions, onConfirm) {
