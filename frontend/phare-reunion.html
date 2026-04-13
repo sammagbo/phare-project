@@ -95,11 +95,18 @@
   .empty-state a:hover { background: var(--primary-hover); }
 
   /* ── Section titles ── */
-  .section-title {
-    font-family: 'Fraunces', serif;
-    font-size: 1.15rem; color: var(--primary);
-    margin: 2rem 0 .8rem; padding-bottom: .4rem;
-    border-bottom: 2p  /* ── Case Cards ── */
+  /* ── Sections ── */
+  .planning-layout { display: flex; flex-direction: column; gap: 3rem; }
+  .pending-section, .scheduled-section { width: 100%; }
+  
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 2.5rem 0 1.25rem; padding-bottom: .6rem;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  .section-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--primary); }
+
+  /* ── Case Cards (Pending) ── */
   .cases-list { display: flex; flex-direction: column; gap: 1.5rem; }
   .case-card {
     background: var(--card);
@@ -123,6 +130,54 @@
     content: ''; position: absolute; left: 0; top: 0; bottom: 0;
     width: 6px; background: var(--primary); opacity: 0.4;
   }
+
+  /* ── Interview Dossier Cards (Scheduled) ── */
+  .scheduled-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+  .dossier-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    position: relative; overflow: hidden;
+    display: grid; grid-template-rows: auto 1fr auto; gap: .75rem;
+    transition: all .25s ease;
+    animation: dossierReveal .6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .dossier-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px hsla(156, 50%, 10%, 0.08); }
+  .dossier-card::before {
+    content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%;
+    background: var(--primary); opacity: 0.6;
+  }
+  .dossier-card[data-type="victime"]::before { background: var(--victime); }
+  .dossier-card[data-type="temoin"]::before { background: var(--temoin); }
+  .dossier-card[data-type="intimidateur"]::before { background: var(--pi); }
+
+  .dossier-date { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--primary); font-weight: 700; margin-bottom: .25rem; }
+  .dossier-student { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: .5rem; }
+  .dossier-membre { font-size: .88rem; color: var(--text-light); font-weight: 500; }
+  .dossier-tag { 
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    font-size: .65rem; font-weight: 800; padding: .25rem .6rem; 
+    border-radius: 20px; text-transform: uppercase; letter-spacing: .05em;
+    background: var(--primary-light); color: var(--primary);
+  }
+
+  .dossier-actions {
+    margin-top: .5rem; padding-top: .75rem;
+    border-top: 1px solid var(--border);
+    display: flex; gap: .5rem; justify-content: flex-end;
+  }
+  .btn-icon {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px; border: 1.2px solid var(--border); background: var(--card);
+    cursor: pointer; transition: all .2s; font-size: .9rem;
+  }
+  .btn-icon:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
+  .btn-icon.delete:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
 
   .case-header {
     background: hsla(30, 20%, 96%, 0.4);
@@ -156,7 +211,8 @@
 
   .row-student.victime { border-left: 4px solid var(--victime); background: hsla(6, 63%, 46%, 0.01); }
   .row-student.temoin { border-left: 4px solid var(--temoin); background: hsla(45, 85%, 38%, 0.01); }
-  .row-student.intimidateur { border-left: 4px solid var(--pi); background: hsla(282, 44%, 36%, 0.01); }fdfbff; border-left: 4px solid var(--pi); }
+  .row-student.intimidateur { border-left: 4px solid var(--pi); background: hsla(282, 44%, 36%, 0.01); }
+fdfbff; border-left: 4px solid var(--pi); }
 
   .student-name { font-weight: 600; font-size: .88rem; }
   .student-type {
@@ -331,23 +387,35 @@
     <p>Planifiez les entretiens pour les cas enregistrés</p>
   </header>
 
-  <!-- Stats -->
-  <div class="stats-bar" id="stats-bar"></div>
+  <!-- Layout -->
+  <div class="planning-layout">
+    
+    <!-- À PLANIFIER -->
+    <section class="pending-section" id="pending-section">
+      <div class="section-header">
+        <h2>📑 Entretiens a planifier</h2>
+        <div class="stats-bar" id="stats-bar"></div>
+      </div>
+      <div id="cases-container" class="cases-list"></div>
+    </section>
 
-  <!-- Cases from Gestion -->
-  <div id="cases-container" class="cases-list"></div>
+    <!-- PLANIFIÉS -->
+    <section class="scheduled-section" id="scheduled-section" style="display:none">
+      <div class="section-header">
+        <h2>📋 Planning des Entretiens</h2>
+      </div>
+      <div id="scheduled-grid" class="scheduled-grid"></div>
+    </section>
+
+  </div>
 
   <!-- Boutons -->
   <div class="actions" id="actions-bar" style="display:none">
-    <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer les entretiens</button>
+    <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer</button>
     <button class="btn btn-ghost" onclick="openMemberManager()">👥 Équipe</button>
     <button class="btn btn-ghost" onclick="exportJSON()">📄 Exporter JSON</button>
     <button class="btn btn-ghost" onclick="printReport()">🖨️ Imprimer</button>
   </div>
-
-  <!-- Résumé par membre -->
-  <h2 class="section-title" id="summary-title" style="display:none">Résumé par membre</h2>
-  <div class="summary-grid" id="summary-grid"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -481,7 +549,16 @@
   function renderCases() {
     const container = document.getElementById('cases-container');
     const actionsBar = document.getElementById('actions-bar');
-    const summaryTitle = document.getElementById('summary-title');
+    const scheduledSection = document.getElementById('scheduled-section');
+
+    // Filter cases to show only those with UNPLANNED students
+    const casesToRender = allCases.filter(cas => {
+      const rd = reunionData[cas.id] || { entretiens: {} };
+      return (cas.eleves || []).some((_, i) => {
+        const ent = rd.entretiens[i];
+        return !ent || !ent.membre || !ent.date;
+      });
+    });
 
     if (allCases.length === 0) {
       container.innerHTML = `
@@ -494,75 +571,171 @@
         </div>
       `;
       actionsBar.style.display = 'none';
-      summaryTitle.style.display = 'none';
+      scheduledSection.style.display = 'none';
       return;
     }
 
     actionsBar.style.display = 'flex';
-    summaryTitle.style.display = 'block';
+    
+    if (casesToRender.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="border-style: solid; background: var(--primary-light);">
+          <span class="emoji">✅</span>
+          <strong>Tous les entretiens sont planifiés</strong><br>
+          Consultez le planning ci-dessous.
+        </div>
+      `;
+    } else {
+      container.innerHTML = casesToRender.map((c, index) => {
+        const caseId = c.id;
+        const rd = reunionData[caseId] || { entretiens: {} };
+        const dateStr = formatDate(c.date);
 
-    container.innerHTML = allCases.map((c, index) => {
-      const caseId = c.id;
-      const rd = reunionData[caseId] || { entretiens: {} };
-      const dateStr = formatDate(c.date);
+        // Only show students who are NOT scheduled
+        const pendingStudents = (c.eleves || []).map((e, i) => ({ e, i }))
+          .filter(pair => {
+            const ent = rd.entretiens[pair.i];
+            return !ent || !ent.membre || !ent.date;
+          });
 
-      const studentRows = (c.eleves || []).map((e, i) => {
-        const td = TYPE_DISPLAY[e.type] || { icon: '❓', label: e.type, class: '' };
-        const ent = rd.entretiens[i] || {};
-        const isScheduled = ent.date && ent.membre;
+        const studentRows = pendingStudents.map(pair => {
+          const { e, i } = pair;
+          const td = TYPE_DISPLAY[e.type] || { icon: '❓', label: e.type, class: '' };
+          const ent = rd.entretiens[i] || {};
 
-        const membreOpts = ['', ...MEMBRES]
-          .map(m => `<option value="${m}" ${ent.membre === m ? 'selected' : ''}>${m || 'Choisir…'}</option>`)
-          .join('');
+          const membreOpts = ['', ...MEMBRES]
+            .map(m => `<option value="${m}" ${ent.membre === m ? 'selected' : ''}>${m || 'Choisir…'}</option>`)
+            .join('');
+
+          return `
+            <div class="row-student ${td.class}">
+              <div>
+                <span class="student-type">${td.icon} ${td.label}</span>
+              </div>
+              <div class="student-name">
+                <span class="status-dot pending"></span>
+                ${e.nom}
+              </div>
+              <select class="f-membre" data-case="${caseId}" data-idx="${i}" onchange="onFieldChange(this)">
+                ${membreOpts}
+              </select>
+              <input type="date" class="f-date" data-case="${caseId}" data-idx="${i}" value="${ent.date || ''}" onchange="onFieldChange(this)">
+              <input type="time" class="f-heure" data-case="${caseId}" data-idx="${i}" value="${ent.heure || ''}" onchange="onFieldChange(this)">
+            </div>
+          `;
+        }).join('');
 
         return `
-          <div class="row-student ${td.class}">
-            <div>
-              <span class="student-type">${td.icon} ${td.label}</span>
+          <div class="case-card" id="case-${caseId}" style="--delay: ${index * 0.1}s">
+            <div class="case-header">
+              <span class="case-title">📂 Cas — ${dateStr} ${c.heure || ''}</span>
+              <div class="case-meta">
+                ${(c.eleves || []).map(e => {
+                  const td = TYPE_DISPLAY[e.type] || { label: e.type, class: '' };
+                  return `<span class="badge badge-${td.class}">${td.label}</span>`;
+                }).join('')}
+              </div>
             </div>
-            <div class="student-name">
-              ${isScheduled ? '<span class="status-dot scheduled"></span>' : '<span class="status-dot pending"></span>'}
-              ${e.nom}
+            <div class="case-body">
+              ${studentRows}
             </div>
-            <select class="f-membre" data-case="${caseId}" data-idx="${i}" onchange="onFieldChange(this)">
-              ${membreOpts}
-            </select>
-            <input type="date" class="f-date" data-case="${caseId}" data-idx="${i}" value="${ent.date || ''}" onchange="onFieldChange(this)">
-            <input type="time" class="f-heure" data-case="${caseId}" data-idx="${i}" value="${ent.heure || ''}" onchange="onFieldChange(this)">
           </div>
         `;
       }).join('');
+    }
+    
+    renderScheduled();
+  }
 
-      // Count how many are scheduled for this case
-      const total = (c.eleves || []).length;
-      let done = 0;
-      (c.eleves || []).forEach((_, i) => {
-        if (rd.entretiens[i]?.date && rd.entretiens[i]?.membre) done++;
+  function renderScheduled() {
+    const grid = document.getElementById('scheduled-grid');
+    const section = document.getElementById('scheduled-section');
+    const scheduled = [];
+
+    allCases.forEach(cas => {
+      const rd = reunionData[cas.id];
+      if (!rd?.entretiens) return;
+      (cas.eleves || []).forEach((e, i) => {
+        const ent = rd.entretiens[i];
+        if (ent?.membre && ent?.date) {
+          scheduled.push({ casId: cas.id, studentIdx: i, student: e, entretien: ent });
+        }
       });
+    });
 
+    if (scheduled.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    
+    // Sort by date then time
+    scheduled.sort((a, b) => {
+      const db = (a.entretien.date + a.entretien.heure).localeCompare(b.entretien.date + b.entretien.heure);
+      return db;
+    });
+
+    grid.innerHTML = scheduled.map((item, index) => {
+      const td = TYPE_DISPLAY[item.student.type] || { icon: '❓', label: item.student.type };
       return `
-        <div class="case-card" id="case-${caseId}" style="--delay: ${index * 0.1}s">
-          <div class="case-header">
-            <span class="case-title">📂 Cas — ${dateStr} ${c.heure || ''}</span>
-            <div class="case-meta">
-              <span>${done}/${total} planifié${done > 1 ? 's' : ''}</span>
-              ${(c.eleves || []).map(e => {
-                const td = TYPE_DISPLAY[e.type] || { label: e.type, class: '' };
-                return `<span class="badge badge-${td.class}">${td.label}</span>`;
-              }).join('')}
-            </div>
-          </div>
-          <div class="case-body">
-            ${studentRows}
+        <div class="dossier-card" data-type="${item.student.type}" style="--delay: ${index * 0.05}s">
+          <div class="dossier-tag">${td.label}</div>
+          <div class="dossier-date">📅 ${formatDate(item.entretien.date)} à ${item.entretien.heure || '--:--'}</div>
+          <div class="dossier-student">${td.icon} ${item.student.nom}</div>
+          <div class="dossier-membre">👤 Membre: ${item.entretien.membre}</div>
+          
+          <div class="dossier-actions">
+            <button class="btn-icon" title="Modifier" onclick="editInterview('${item.casId}', ${item.studentIdx})">✏️</button>
+            <button class="btn-icon delete" title="Supprimer" onclick="deleteInterview('${item.casId}', ${item.studentIdx})">🗑️</button>
+            <button class="btn-icon" title="Ajouter Témoin" onclick="quickAdd('${item.casId}', 'temoin')">➕🟡</button>
+            <button class="btn-icon" title="Ajouter Intimidateur" onclick="quickAdd('${item.casId}', 'intimidateur')">➕🟣</button>
           </div>
         </div>
       `;
     }).join('');
   }
 
-  // ══════════════════════════════════════════════════════════
-  //  FIELD CHANGE — live save to reunionData
-  // ══════════════════════════════════════════════════════════
+  function editInterview(caseId, idx) {
+    // To edit, we just need to refresh the view. 
+    // The "To Plan" section will show the fields again because the current logic 
+    // for renderCases filters out students with complete data.
+    // If we want a specific student to be "active" for editing, 
+    // we could temporarily clear their data or add an 'editing' flag.
+    // User request: "some de cima e fica somente o card... espaço clicavel para modificar".
+    // I'll make Modify clear the date/membre temporarily in the UI state or just navigate to it.
+    
+    // Simple approach: Clear Member/Date (keeping them in memory if needed, but here simple is better)
+    if(confirm("Repasser cet entretien en 'À Planifier' ?")) {
+      deleteInterview(caseId, idx, false);
+    }
+  }
+
+  function deleteInterview(caseId, idx, confirmMsg = true) {
+    if (confirmMsg && !confirm("Supprimer l'entretien planifié ?")) return;
+    if (reunionData[caseId]?.entretiens[idx]) {
+      delete reunionData[caseId].entretiens[idx];
+      saveReunions();
+      renderAll();
+      toast("Entretien retiré du planning");
+    }
+  }
+
+  function quickAdd(caseId, type) {
+    const name = prompt(`Nom du nouveau ${type === 'temoin' ? 'témoin' : 'intimidateur'} :`);
+    if (!name) return;
+    
+    const cas = allCases.find(c => String(c.id) === String(caseId));
+    if (cas) {
+      if (!cas.eleves) cas.eleves = [];
+      cas.eleves.push({ nom: name, type: type });
+      
+      // Update localStorage for CASES_KEY
+      localStorage.setItem(CASES_KEY, JSON.stringify(allCases));
+      renderAll();
+      toast(`${name} ajouté au cas.`);
+    }
+  }
 
   function onFieldChange(el) {
     const caseId = el.dataset.case;
@@ -577,30 +750,14 @@
     ent.date   = row.querySelector('.f-date').value;
     ent.heure  = row.querySelector('.f-heure').value;
 
-    // Auto-save on every change
-    saveReunions();
-    renderStats();
-    updateSummary();
-
-    // Update status dot
-    const isScheduled = ent.date && ent.membre;
-    const dot = row.querySelector('.status-dot');
-    if (dot) {
-      dot.className = `status-dot ${isScheduled ? 'scheduled' : 'pending'}`;
-    }
-
-    // Update case header counter
-    const card = row.closest('.case-card');
-    const caseObj = allCases.find(c => String(c.id) === String(caseId));
-    if (caseObj && card) {
-      const total = (caseObj.eleves || []).length;
-      let done = 0;
-      (caseObj.eleves || []).forEach((_, i) => {
-        const e = reunionData[caseId]?.entretiens?.[i];
-        if (e?.date && e?.membre) done++;
-      });
-      const metaSpan = card.querySelector('.case-meta span:first-child');
-      if (metaSpan) metaSpan.textContent = `${done}/${total} planifié${done > 1 ? 's' : ''}`;
+    // Check if fully scheduled
+    if (ent.membre && ent.date) {
+      saveReunions();
+      renderAll(); // Will trigger move to Scheduled
+      toast("Entretien planifié !");
+    } else {
+      saveReunions();
+      renderStats();
     }
   }
 
@@ -619,52 +776,7 @@
   // ══════════════════════════════════════════════════════════
 
   function updateSummary() {
-    const grid = document.getElementById('summary-grid');
-    const byMember = {};
-
-    allCases.forEach(c => {
-      const rd = reunionData[c.id];
-      if (!rd?.entretiens) return;
-
-      (c.eleves || []).forEach((e, i) => {
-        const ent = rd.entretiens[i];
-        if (!ent?.membre) return;
-
-        if (!byMember[ent.membre]) byMember[ent.membre] = [];
-        const td = TYPE_DISPLAY[e.type] || { icon: '', label: e.type };
-        byMember[ent.membre].push({
-          nom: e.nom,
-          typeLabel: `${td.icon} ${td.label}`,
-          date: ent.date || '—',
-          heure: ent.heure || '—',
-          caseDate: c.date
-        });
-      });
-    });
-
-    if (Object.keys(byMember).length === 0) {
-      grid.innerHTML = '<p style="color:var(--text-light);font-size:.85rem;font-style:italic">Aucune attribution en cours. Assignez des membres ci-dessus.</p>';
-      return;
-    }
-
-    grid.innerHTML = Object.entries(byMember).map(([membre, rows], index) => {
-      const lis = rows.map(r => `
-        <li>
-          <div>
-            <div style="font-weight:700; color:var(--text)">${r.nom}</div>
-            <div style="font-size:.78rem; color:var(--text-light)">
-              ${r.typeLabel} • ${formatDate(r.date)} à ${r.heure}
-            </div>
-          </div>
-        </li>
-      `).join('');
-      return `
-        <div class="summary-card" style="animation: dossierReveal .6s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: ${index * 0.08}s">
-          <h4>${membre} (${rows.length})</h4>
-          <ul>${lis}</ul>
-        </div>
-      `;
-    }).join('');
+    // Replaced by renderScheduled and filtered renderCases
   }
 
   // ══════════════════════════════════════════════════════════
