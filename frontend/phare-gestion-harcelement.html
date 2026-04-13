@@ -7,6 +7,25 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
 
+  /* ── Navigation ── */
+  .top-nav {
+    display: flex; justify-content: center; gap: .5rem;
+    margin-bottom: 1.5rem; padding: .5rem;
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); border: 1.5px solid var(--border);
+  }
+  .nav-link {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .5rem 1rem; border-radius: 8px;
+    font-family: inherit; font-size: .85rem; font-weight: 600;
+    text-decoration: none; color: var(--text-light);
+    transition: all .2s;
+  }
+  .nav-link:hover { background: var(--primary-light); color: var(--primary); }
+  .nav-link.active { background: var(--primary); color: #fff; }
+  .btn-sm.reunion { background: #e8f0eb; color: var(--primary); }
+  .btn-sm.reunion:hover { background: #d0e4d6; }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -251,11 +270,59 @@
     .btn-delete { grid-column: 2; justify-self: end; }
     .actions { flex-direction: column; align-items: stretch; }
   }
+
+  /* ── Member Manager Modal ── */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.4); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; animation: fadeIn .2s ease;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    background: var(--card); width: 100%; max-width: 400px;
+    border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,.15);
+    padding: 1.5rem; animation: modalUp .3s ease;
+  }
+  @keyframes modalUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+  .modal-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--primary); }
+  .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+
+  .member-input-group { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+  .member-input-group input {
+    flex: 1; padding: .6rem; border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: .9rem;
+  }
+  
+  .member-list-items {
+    max-height: 250px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: .5rem;
+    padding-right: .5rem;
+  }
+  .member-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .6rem .85rem; background: #fafaf8;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: .9rem; font-weight: 500;
+  }
+  .member-item .btn-remove {
+    background: none; border: none; color: var(--accent);
+    cursor: pointer; font-size: 1rem; padding: .2rem;
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
+  <!-- Navigation -->
+  <nav class="top-nav">
+    <a class="nav-link active" href="phare-gestion-harcelement.html">📋 Gestion des cas</a>
+    <a class="nav-link" href="phare-reunion.html">📅 Réunion & Entretiens</a>
+  </nav>
+
   <header>
     <h1>Projet pHARe</h1>
     <p>Gestion des cas de harcèlement scolaire</p>
@@ -294,6 +361,7 @@
     <button class="btn btn-primary" onclick="saveCase()">💾 Enregistrer</button>
     <button class="btn btn-import" onclick="triggerImport()">📂 Importer JSON</button>
     <input type="file" id="import-file" style="display:none" accept=".json" onchange="processImport(event)">
+    <button class="btn btn-export" onclick="openMemberManager()">👥 Équipe</button>
     <button class="btn btn-export" onclick="exportJSON()">📄 Exporter JSON</button>
     <button class="btn btn-print" onclick="printReport()">🖨️ Imprimer</button>
   </div>
@@ -309,20 +377,38 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Modal Gestion des Membres -->
+<div class="modal-overlay" id="member-modal" onclick="if(event.target===this) closeMemberManager()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Membres pHARe</h2>
+      <button class="btn-close" onclick="closeMemberManager()">✕</button>
+    </div>
+    
+    <div class="member-input-group">
+      <input type="text" id="new-member-name" placeholder="Nom du nouveau membre…">
+      <button class="btn btn-primary" onclick="addMemberToList()">Ajouter</button>
+    </div>
+
+    <div id="member-list-items" class="member-list-items">
+      <!-- Rempli en JS -->
+    </div>
+  </div>
+</div>
+
 <script>
   // ══════════════════════════════════════════════════════════
   //  CONFIGURATION
   // ══════════════════════════════════════════════════════════
 
   const API_URL     = 'http://localhost:8080/api/cas';
-  const STORAGE_KEY = 'phare_cases';  // Fallback localStorage
+  const STORAGE_KEY = 'phare_cases';
+  const MEMBERS_KEY = 'phare_members';
 
-  const MEMBRES_PHARE = [
-    'Sélectionner…',
+  let MEMBRES_PHARE = [
     'Sammy K. Magbo',
     'Membre pHARe 2',
-    'Membre pHARe 3',
-    'Membre pHARe 4'
+    'Membre pHARe 3'
   ];
 
   // Mapping des types : frontend (minuscule) ↔ backend (MAJUSCULE)
@@ -339,6 +425,7 @@
   // ══════════════════════════════════════════════════════════
 
   (async function init() {
+    loadMembers(); // Charger les membres d'abord
     const now = new Date();
     document.getElementById('date').value  = now.toISOString().slice(0, 10);
     document.getElementById('heure').value = now.toTimeString().slice(0, 5);
@@ -442,7 +529,7 @@
     card.className = 'student-card';
     card.id = `student-${id}`;
 
-    const opts = MEMBRES_PHARE
+    const opts = ['Choisir…', ...MEMBRES_PHARE]
       .map((m, i) => `<option value="${i === 0 ? '' : m}"${i === 0 ? ' disabled selected' : ''}>${m}</option>`)
       .join('');
 
@@ -798,22 +885,114 @@
       const lines = c.eleves.map(e =>
         `${e.nom} <span class="history-tag tag-${typeClass(e.type)}">${typeIcon(e.type)} ${typeLabel(e.type)}</span>${e.membre ? ' → ' + e.membre : ''}`
       ).join('<br>');
+
       return `
         <div class="history-card">
           <div class="history-header">
-            <span class="history-date">${formatDate(c.date)} à ${c.heure}</span>
+            <span class="history-date">📅 ${c.date} ${c.heure}</span>
             <span class="history-count">${c.eleves.length} élève${c.eleves.length > 1 ? 's' : ''}</span>
           </div>
           <div class="history-students">${lines}</div>
           <div class="history-actions">
-            <button class="btn-sm edit" onclick="editCase(${c.id})">✏️ Modifier</button>
-            <button class="btn-sm delete" onclick="deleteCase(${c.id})">Supprimer</button>
+            <button class="btn-sm edit" onclick="editCase('${c.id}')">✏️ Modifier</button>
+            <button class="btn-sm reunion" onclick="goToReunion('${c.id}')">📅 Planifier</button>
+            <button class="btn-sm delete" onclick="deleteCase('${c.id}')">🗑️ Supprimer</button>
           </div>
-        </div>`;
+        </div>
+      `;
     }).join('');
   }
 
-  function filterHistory() { renderHistory(); }
+  function filterHistory() {
+    renderHistory();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  GESTION DES MEMBRES — Dynamique
+  // ══════════════════════════════════════════════════════════
+
+  function loadMembers() {
+    const saved = localStorage.getItem(MEMBERS_KEY);
+    if (saved) {
+      try {
+        MEMBRES_PHARE = JSON.parse(saved);
+      } catch (e) { console.error("Erreur chargement membres", e); }
+    }
+  }
+
+  function saveMembers() {
+    localStorage.setItem(MEMBERS_KEY, JSON.stringify(MEMBRES_PHARE));
+    updateAllMemberSelects();
+  }
+
+  function openMemberManager() {
+    document.getElementById('member-modal').classList.add('active');
+    renderMemberManager();
+  }
+
+  function closeMemberManager() {
+    document.getElementById('member-modal').classList.remove('active');
+  }
+
+  function renderMemberManager() {
+    const container = document.getElementById('member-list-items');
+    if (MEMBRES_PHARE.length === 0) {
+      container.innerHTML = '<p style="text-align:center; font-size:.8rem; color:var(--text-light); padding:1rem;">Aucun membre enregistré.</p>';
+      return;
+    }
+    container.innerHTML = MEMBRES_PHARE.map((m, i) => `
+      <div class="member-item">
+        <span>${m}</span>
+        <button class="btn-remove" onclick="removeMemberFromList(${i})" title="Supprimer">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function addMemberToList() {
+    const input = document.getElementById('new-member-name');
+    const name = input.value.trim();
+    if (!name) return;
+    if (MEMBRES_PHARE.includes(name)) {
+      toast("Membre déjà présent", true);
+      return;
+    }
+    MEMBRES_PHARE.push(name);
+    MEMBRES_PHARE.sort();
+    input.value = '';
+    saveMembers();
+    renderMemberManager();
+    toast("Membre ajouté");
+  }
+
+  function removeMemberFromList(index) {
+    if (!confirm(`Supprimer ${MEMBRES_PHARE[index]} de la liste ?`)) return;
+    MEMBRES_PHARE.splice(index, 1);
+    saveMembers();
+    renderMemberManager();
+    toast("Membre retiré");
+  }
+
+  /** Met à jour tous les selects existants sans perdre la sélection actuelle */
+  function updateAllMemberSelects() {
+    const selects = document.querySelectorAll('select[data-field="membre"]');
+    selects.forEach(select => {
+      const currentVal = select.value;
+      const opts = ['Choisir…', ...MEMBRES_PHARE]
+        .map((m, i) => `<option value="${i === 0 ? '' : m}"${i === 0 ? ' disabled' : ''}>${m}</option>`)
+        .join('');
+      select.innerHTML = opts;
+      // Tenter de restaurer la valeur si elle existe encore
+      if (MEMBRES_PHARE.includes(currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = '';
+      }
+    });
+  }
+  /** Navigate to Réunion page with a specific case pre-selected */
+  function goToReunion(caseId) {
+    window.location.href = `phare-reunion.html?cas=${caseId}`;
+  }
 
   // ══════════════════════════════════════════════════════════
   //  IMPRESSION HTML
