@@ -152,6 +152,23 @@
     border: 2px dashed var(--border); border-radius: var(--radius); background: var(--card);
   }
 
+  /* ── Role requirement hint ── */
+  .role-hint {
+    display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
+    align-items: center;
+  }
+  .role-chip {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .75rem; font-weight: 700; padding: .25rem .65rem;
+    border-radius: 20px; border: 1.5px solid; opacity: .55;
+    transition: opacity .2s, transform .2s;
+  }
+  .role-chip.met { opacity: 1; transform: scale(1.04); }
+  .chip-victime     { background: #fdecea; color: #c0392b; border-color: #f5c6cb; }
+  .chip-temoin      { background: #fef9e7; color: #9a7d0a; border-color: #f0e199; }
+  .chip-intimidateur{ background: #f0e0f7; color: #6c2d8b; border-color: #d5b8e8; }
+  .role-hint-label  { font-size: .75rem; color: var(--text-light); margin-right: .25rem; }
+
   /* ── Buttons ── */
   .actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
   .btn {
@@ -352,6 +369,14 @@
     <button class="btn-cancel" onclick="cancelEdit()">Annuler</button>
   </div>
 
+  <!-- Indicateurs de rôles requis -->
+  <div class="role-hint" id="role-hint" style="display:none">
+    <span class="role-hint-label">Requis :</span>
+    <span class="role-chip chip-victime" id="chip-victime">🔴 Victime</span>
+    <span class="role-chip chip-temoin" id="chip-temoin">🟡 Témoin</span>
+    <span class="role-chip chip-intimidateur" id="chip-intimidateur">🟣 Intimidateur</span>
+  </div>
+
   <!-- Liste des élèves -->
   <div id="students-list"></div>
 
@@ -518,6 +543,25 @@
     }
   }
 
+  /** Met à jour les indicateurs de rôles (chips) en temps réel */
+  function updateRoleHint() {
+    const cards = document.querySelectorAll('.student-card');
+    const hint = document.getElementById('role-hint');
+
+    if (cards.length === 0) { hint.style.display = 'none'; return; }
+    hint.style.display = 'flex';
+
+    const types = [];
+    cards.forEach(card => {
+      const sel = card.querySelector('[data-field="type"]');
+      if (sel && sel.value) types.push(TO_BACK[sel.value] || sel.value);
+    });
+
+    document.getElementById('chip-victime').classList.toggle('met', types.includes('VICTIME'));
+    document.getElementById('chip-temoin').classList.toggle('met', types.includes('TEMOIN'));
+    document.getElementById('chip-intimidateur').classList.toggle('met', types.includes('INTIMIDATEUR'));
+  }
+
   function addStudent() {
     const list = document.getElementById('students-list');
     const empty = list.querySelector('.empty-state');
@@ -557,6 +601,7 @@
     `;
     list.appendChild(card);
     card.querySelector('input').focus();
+    updateRoleHint();
 
     // Effacer erreurs en temps réel
     card.querySelector('[data-field="nom"]').addEventListener('input', function() {
@@ -569,6 +614,7 @@
       card.querySelector('[data-error="type"]').classList.remove('visible');
       card.classList.remove('error');
       card.setAttribute('data-type', this.value);
+      updateRoleHint();
     });
   }
 
@@ -578,7 +624,7 @@
       card.style.opacity = '0';
       card.style.transform = 'translateY(-8px)';
       card.style.transition = 'all .2s ease';
-      setTimeout(() => { card.remove(); renderEmptyState(); }, 200);
+      setTimeout(() => { card.remove(); renderEmptyState(); updateRoleHint(); }, 200);
     }
   }
 
@@ -690,6 +736,18 @@
     if (allErrors.length > 0) {
       showSummary(allErrors);
       toast('Veuillez corriger les erreurs.', true);
+      return;
+    }
+
+    // ── Règle métier : 1 Victime + 1 Témoin + 1 Intimidateur minimum ──
+    const types = students.map(s => s.type);
+    const businessErrors = [];
+    if (!types.includes('VICTIME'))      businessErrors.push('Le cas doit avoir au moins une 🔴 Victime.');
+    if (!types.includes('TEMOIN'))       businessErrors.push('Le cas doit avoir au moins un 🟡 Témoin.');
+    if (!types.includes('INTIMIDATEUR')) businessErrors.push('Le cas doit avoir au moins un 🟣 Intimidateur.');
+    if (businessErrors.length > 0) {
+      showSummary(businessErrors);
+      toast('Composition du cas incomplète.', true);
       return;
     }
 
