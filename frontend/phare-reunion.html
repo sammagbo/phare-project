@@ -730,7 +730,7 @@ fdfbff; border-left: 4px solid var(--pi); }
     if (action === 'edit') {
       window.editInterview(caseId, idx);
     } else if (action === 'delete') {
-      window.deleteInterview(caseId, idx);
+      window.deleteCaseAction(caseId);
     } else if (action === 'add-temoin') {
       window.quickAdd(caseId, 'temoin');
     } else if (action === 'add-intimidateur') {
@@ -786,27 +786,36 @@ fdfbff; border-left: 4px solid var(--pi); }
   // --- Functions ---
   window.editInterview = function(caseId, idx) {
     openCustomModal("Modifier l'entretien", "Repasser cet entretien en 'À Planifier' ?", false, null, (confirmed) => {
-      if(confirmed) window.deleteInterview(caseId, idx, false);
+      if(confirmed) window.unscheduleInterview(caseId, idx);
     });
   };
 
-  window.deleteInterview = function(caseId, idx, requireConfirmation = true) {
-    const actDelete = () => {
-      if (reunionData[caseId]?.entretiens[idx]) {
-        delete reunionData[caseId].entretiens[idx];
-        saveReunions();
-        renderAll();
-        toast("Entretien retiré du planning");
-      }
-    };
-
-    if (requireConfirmation) {
-      openCustomModal("Supprimer", "Voulez-vous vraiment supprimer cet entretien planifié ?", false, null, (confirmed) => {
-        if(confirmed) actDelete();
-      });
-    } else {
-      actDelete();
+  window.unscheduleInterview = function(caseId, idx) {
+    if (reunionData[caseId]?.entretiens[idx]) {
+      delete reunionData[caseId].entretiens[idx];
+      saveReunions();
+      renderAll();
+      toast("Entretien retiré du planning (retour en file d'attente)");
     }
+  };
+
+  window.deleteCaseAction = function(caseId) {
+    openCustomModal("Supprimer le cas", "⚠️ ATTENTION : Voulez-vous vraiment supprimer CE CAS ENTIER (incluant la victime et tous les intervenants liés) ?", false, null, (alertConfirmed) => {
+      if(alertConfirmed) {
+        // Enlève le cas de la liste principale
+        allCases = allCases.filter(c => String(c.id) !== String(caseId));
+        localStorage.setItem(CASES_KEY, JSON.stringify(allCases));
+        
+        // Nettoie aussi dans reunionData
+        if(reunionData[caseId]) {
+          delete reunionData[caseId];
+          saveReunions();
+        }
+        
+        renderAll();
+        toast("Le cas a été supprimé définitivement.");
+      }
+    });
   };
 
   window.quickAdd = function(caseId, type) {
