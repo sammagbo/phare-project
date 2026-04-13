@@ -128,10 +128,10 @@
     background: var(--card);
     border: 1.5px solid var(--border); border-radius: var(--radius);
     padding: 1rem 1.25rem; box-shadow: var(--shadow);
-    display: grid; grid-template-columns: 1fr 1fr 1fr auto;
-    gap: .75rem; align-items: end;
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem;
     animation: slideIn .25s ease;
   }
+  .student-card .field { flex: 1; min-width: 150px; }
   .student-card.error { border-color: var(--accent); background: var(--accent-light); }
   .field-error { font-size: .75rem; color: var(--accent); font-weight: 500; margin-top: .15rem; display: none; }
   .field-error.visible { display: block; }
@@ -162,9 +162,9 @@
   .student-card select:focus { outline: none; border-color: var(--primary); }
   .btn-delete {
     background: none; border: none; color: var(--accent);
-    font-size: 1.25rem; cursor: pointer; padding: .4rem;
+    font-size: 1.25rem; cursor: pointer; padding: .65rem;
     border-radius: 6px; transition: background .15s;
-    align-self: end; margin-bottom: .15rem;
+    align-self: flex-end; margin-bottom: 0; display: inline-flex;
   }
   .btn-delete:hover { background: rgba(192,57,43,.08); }
 
@@ -653,6 +653,58 @@
     document.getElementById('chip-intimidateur').classList.toggle('met', types.includes('INTIMIDATEUR'));
   }
 
+  /** Updates the "lie_a" dropdowns globally across all students based on currently registered victims */
+  function updateVictimDropdowns() {
+    const cards = document.querySelectorAll('.student-card');
+    const victims = [];
+
+    // 1. Collect all names marked as Victime
+    cards.forEach(c => {
+      const type = c.querySelector('[data-field="type"]').value;
+      const nom = c.querySelector('[data-field="nom"]').value.trim();
+      if ((type === 'victime' || type === 'VICTIME') && nom !== '') {
+        victims.push(nom);
+      }
+    });
+
+    // 2. Refresh the options for Temoins and Intimidateurs
+    cards.forEach(c => {
+      const type = c.querySelector('[data-field="type"]').value;
+      const linkField = c.querySelector('.field-link');
+      const select = c.querySelector('[data-field="lie_a"]');
+      
+      const isRoleRequiringLink = (type === 'temoin' || type === 'TEMOIN' || type === 'intimidateur' || type === 'INTIMIDATEUR');
+      
+      if (isRoleRequiringLink) {
+        linkField.style.display = 'flex';
+        const currentVal = select.value;
+        const opts = ['<option value="" disabled selected>Choisir…</option>'];
+        
+        victims.forEach(v => {
+          opts.push(`<option value="${v}">${v}</option>`);
+        });
+
+        if (victims.length === 0) {
+          opts.push(`<option value="" disabled>Aucune victime ajoutée</option>`);
+        }
+        
+        select.innerHTML = opts.join('');
+        
+        // Auto-select logic: retain existing selection, or auto-pick if only 1 victim
+        if (victims.includes(currentVal)) {
+          select.value = currentVal;
+        } else if (victims.length === 1) {
+          select.value = victims[0];
+          select.classList.remove('invalid');
+          c.querySelector('[data-error="lie_a"]').classList.remove('visible');
+        }
+      } else {
+        linkField.style.display = 'none';
+        select.value = '';
+      }
+    });
+  }
+
   function addStudent() {
     const list = document.getElementById('students-list');
     const empty = list.querySelector('.empty-state');
@@ -684,6 +736,13 @@
         </select>
         <div class="field-error" data-error="type">Le type est obligatoire.</div>
       </div>
+      <div class="field field-link" style="display:none">
+        <label class="field-label">Lié à (Victime)</label>
+        <select data-field="lie_a">
+          <option value="" disabled selected>Choisir…</option>
+        </select>
+        <div class="field-error" data-error="lie_a">Cible manquante.</div>
+      </div>
       <div class="field">
         <label class="field-label">Membre pHARe</label>
         <select data-field="membre">${opts}</select>
@@ -693,12 +752,14 @@
     list.appendChild(card);
     card.querySelector('input').focus();
     updateRoleHint();
+    updateVictimDropdowns();
 
-    // Effacer erreurs en temps réel
+    // Effacer erreurs en temps réel et cascade logic
     card.querySelector('[data-field="nom"]').addEventListener('input', function() {
       this.classList.remove('invalid');
       card.querySelector('[data-error="nom"]').classList.remove('visible');
       card.classList.remove('error');
+      updateVictimDropdowns(); // Nom updated -> update lie_a for others
     });
     card.querySelector('[data-field="type"]').addEventListener('change', function() {
       this.classList.remove('invalid');
@@ -706,6 +767,12 @@
       card.classList.remove('error');
       card.setAttribute('data-type', this.value);
       updateRoleHint();
+      updateVictimDropdowns(); // Type updated -> show/hide lie_a
+    });
+    card.querySelector('[data-field="lie_a"]').addEventListener('change', function() {
+      this.classList.remove('invalid');
+      card.querySelector('[data-error="lie_a"]').classList.remove('visible');
+      card.classList.remove('error');
     });
   }
 
@@ -715,7 +782,12 @@
       card.style.opacity = '0';
       card.style.transform = 'translateY(-8px)';
       card.style.transition = 'all .2s ease';
-      setTimeout(() => { card.remove(); renderEmptyState(); updateRoleHint(); }, 200);
+      setTimeout(() => { 
+        card.remove(); 
+        renderEmptyState(); 
+        updateRoleHint(); 
+        updateVictimDropdowns();
+      }, 200);
     }
   }
 
@@ -731,6 +803,12 @@
     card.querySelector('[data-field="type"]').value = typeLower;
     card.setAttribute('data-type', typeLower);
     if (data.membre) card.querySelector('[data-field="membre"]').value = data.membre;
+    
+    // Refresh connections, then restore lie_a
+    updateVictimDropdowns();
+    if (data.lie_a) {
+      card.querySelector('[data-field="lie_a"]').value = data.lie_a;
+    }
   }
 
   // ══════════════════════════════════════════════════════════
@@ -762,8 +840,11 @@
       const nomInput   = card.querySelector('[data-field="nom"]');
       const typeSelect = card.querySelector('[data-field="type"]');
       const membre     = card.querySelector('[data-field="membre"]').value;
+      const selectLink = card.querySelector('[data-field="lie_a"]');
+      
       const nom  = nomInput.value.trim();
       const type = typeSelect.value;
+      const lie_a= selectLink.value;
       let ok = true;
 
       if (!nom) {
@@ -778,9 +859,17 @@
         errors.push(`Élève ${idx} : type manquant`);
         ok = false;
       }
+      
+      const isRoleRequiringLink = (type === 'temoin' || type === 'intimidateur' || type === 'TEMOIN' || type === 'INTIMIDATEUR');
+      if (isRoleRequiringLink && !lie_a) {
+        selectLink.classList.add('invalid');
+        card.querySelector('[data-error="lie_a"]').classList.add('visible');
+        errors.push(`Élève ${idx} : doit être lié à une victime`);
+        ok = false;
+      }
 
       if (!ok) card.classList.add('error');
-      else students.push({ nom, type: TO_BACK[type] || type, membre });
+      else students.push({ nom, type: TO_BACK[type] || type, membre, lie_a });
     });
 
     return { valid: errors.length === 0, students, errors };

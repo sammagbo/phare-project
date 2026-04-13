@@ -435,6 +435,25 @@ fdfbff; border-left: 4px solid var(--pi); }
   </div>
 </div>
 
+<!-- Generic Custom Modal -->
+<div class="modal-overlay" id="custom-modal">
+  <div class="modal-card" style="max-width: 400px;">
+    <div class="modal-header">
+      <h2 id="custom-modal-title">Action</h2>
+      <button class="btn-close" onclick="closeCustomModal()">✕</button>
+    </div>
+    <div class="member-input-group" style="flex-direction: column; gap: 1rem;">
+      <p id="custom-modal-msg" style="margin: 0; color: var(--text-color); font-size: 1.1rem; line-height: 1.4;"></p>
+      <input type="text" id="custom-modal-input" style="display: none; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px;">
+      <select id="custom-modal-select" style="display: none; font-family: inherit; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px; font-size: 0.95rem;"></select>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; width: 100%; margin-top: 0.5rem;">
+        <button class="btn btn-ghost" onclick="closeCustomModal()">Annuler</button>
+        <button class="btn btn-primary" id="custom-modal-confirm">Confirmer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   // ══════════════════════════════════════════════════════════
   //  CONFIGURATION — shared localStorage keys
@@ -612,9 +631,9 @@ fdfbff; border-left: 4px solid var(--pi); }
               <div>
                 <span class="student-type">${td.icon} ${td.label}</span>
               </div>
-              <div class="student-name">
-                <span class="status-dot pending"></span>
-                ${e.nom}
+              <div class="student-name" style="display: flex; flex-direction: column; justify-content: center;">
+                <div><span class="status-dot pending"></span>${e.nom}</div>
+                ${e.lie_a ? `<div style="font-size: .7em; opacity: 0.65; margin-top: 2px;">Lié à: ${e.lie_a}</div>` : ''}
               </div>
               <select class="f-membre" data-case="${caseId}" data-idx="${i}" onchange="onFieldChange(this)">
                 ${membreOpts}
@@ -682,60 +701,136 @@ fdfbff; border-left: 4px solid var(--pi); }
         <div class="dossier-card" data-type="${item.student.type}" style="--delay: ${index * 0.05}s">
           <div class="dossier-tag">${td.label}</div>
           <div class="dossier-date">📅 ${formatDate(item.entretien.date)} à ${item.entretien.heure || '--:--'}</div>
-          <div class="dossier-student">${td.icon} ${item.student.nom}</div>
+          <div class="dossier-student" style="display:flex; flex-direction:column; gap:2px; align-items:flex-start;">
+            <div>${td.icon} ${item.student.nom}</div>
+            ${item.student.lie_a ? `<div style="font-size: .8em; opacity: 0.7; font-weight: 500; padding-left: 1.5rem;">Lié à: ${item.student.lie_a}</div>` : ''}
+          </div>
           <div class="dossier-membre">👤 Membre: ${item.entretien.membre}</div>
           
           <div class="dossier-actions">
-            <button class="btn-icon" title="Modifier" onclick="editInterview('${item.casId}', ${item.studentIdx})">✏️</button>
-            <button class="btn-icon delete" title="Supprimer" onclick="deleteInterview('${item.casId}', ${item.studentIdx})">🗑️</button>
-            <button class="btn-icon" title="Ajouter Témoin" onclick="quickAdd('${item.casId}', 'temoin')">➕🟡</button>
-            <button class="btn-icon" title="Ajouter Intimidateur" onclick="quickAdd('${item.casId}', 'intimidateur')">➕🟣</button>
+            <button class="btn-icon" title="Modifier" data-action="edit" data-case="${item.casId}" data-idx="${item.studentIdx}">✏️</button>
+            <button class="btn-icon delete" title="Supprimer" data-action="delete" data-case="${item.casId}" data-idx="${item.studentIdx}">🗑️</button>
+            <button class="btn-icon" title="Ajouter Témoin" data-action="add-temoin" data-case="${item.casId}">➕🟡</button>
+            <button class="btn-icon" title="Ajouter Intimidateur" data-action="add-intimidateur" data-case="${item.casId}">➕🟣</button>
           </div>
         </div>
       `;
     }).join('');
   }
 
-  function editInterview(caseId, idx) {
-    // To edit, we just need to refresh the view. 
-    // The "To Plan" section will show the fields again because the current logic 
-    // for renderCases filters out students with complete data.
-    // If we want a specific student to be "active" for editing, 
-    // we could temporarily clear their data or add an 'editing' flag.
-    // User request: "some de cima e fica somente o card... espaço clicavel para modificar".
-    // I'll make Modify clear the date/membre temporarily in the UI state or just navigate to it.
+  // Delegated Event Listener for Dossier Actions
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
     
-    // Simple approach: Clear Member/Date (keeping them in memory if needed, but here simple is better)
-    if(confirm("Repasser cet entretien en 'À Planifier' ?")) {
-      deleteInterview(caseId, idx, false);
+    const action = btn.getAttribute('data-action');
+    const caseId = btn.getAttribute('data-case');
+    const idx = btn.getAttribute('data-idx');
+
+    if (action === 'edit') {
+      window.editInterview(caseId, idx);
+    } else if (action === 'delete') {
+      window.deleteInterview(caseId, idx);
+    } else if (action === 'add-temoin') {
+      window.quickAdd(caseId, 'temoin');
+    } else if (action === 'add-intimidateur') {
+      window.quickAdd(caseId, 'intimidateur');
     }
+  });
+
+  // --- Custom Modals ---
+  function closeCustomModal() {
+    document.getElementById('custom-modal').classList.remove('active');
   }
 
-  function deleteInterview(caseId, idx, confirmMsg = true) {
-    if (confirmMsg && !confirm("Supprimer l'entretien planifié ?")) return;
-    if (reunionData[caseId]?.entretiens[idx]) {
-      delete reunionData[caseId].entretiens[idx];
-      saveReunions();
-      renderAll();
-      toast("Entretien retiré du planning");
+  function openCustomModal(title, msg, showInput, selectOptions, onConfirm) {
+    document.getElementById('custom-modal-title').textContent = title;
+    document.getElementById('custom-modal-msg').textContent = msg;
+    
+    const inputEl = document.getElementById('custom-modal-input');
+    if (showInput) {
+      inputEl.style.display = 'block';
+      inputEl.value = '';
+      inputEl.focus();
+    } else {
+      inputEl.style.display = 'none';
     }
+    
+    const selectEl = document.getElementById('custom-modal-select');
+    if (selectOptions && selectOptions.length > 0) {
+      selectEl.style.display = 'block';
+      selectEl.innerHTML = '<option value="" disabled selected>Sélectionner la victime liée…</option>' + 
+                           selectOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+      if (selectOptions.length === 1) selectEl.value = selectOptions[0]; // Auto-select if only 1
+    } else {
+      selectEl.style.display = 'none';
+      selectEl.innerHTML = '';
+    }
+    
+    const btnConfirm = document.getElementById('custom-modal-confirm');
+    // Clear old listeners
+    const newBtn = btnConfirm.cloneNode(true);
+    btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
+
+    newBtn.addEventListener('click', () => {
+      onConfirm(
+        showInput ? inputEl.value.trim() : true,
+        (selectOptions && selectOptions.length > 0) ? selectEl.value : null
+      );
+      closeCustomModal();
+    });
+
+    document.getElementById('custom-modal').classList.add('active');
   }
 
-  function quickAdd(caseId, type) {
-    const name = prompt(`Nom du nouveau ${type === 'temoin' ? 'témoin' : 'intimidateur'} :`);
-    if (!name) return;
-    
+  // --- Functions ---
+  window.editInterview = function(caseId, idx) {
+    openCustomModal("Modifier l'entretien", "Repasser cet entretien en 'À Planifier' ?", false, null, (confirmed) => {
+      if(confirmed) window.deleteInterview(caseId, idx, false);
+    });
+  };
+
+  window.deleteInterview = function(caseId, idx, requireConfirmation = true) {
+    const actDelete = () => {
+      if (reunionData[caseId]?.entretiens[idx]) {
+        delete reunionData[caseId].entretiens[idx];
+        saveReunions();
+        renderAll();
+        toast("Entretien retiré du planning");
+      }
+    };
+
+    if (requireConfirmation) {
+      openCustomModal("Supprimer", "Voulez-vous vraiment supprimer cet entretien planifié ?", false, null, (confirmed) => {
+        if(confirmed) actDelete();
+      });
+    } else {
+      actDelete();
+    }
+  };
+
+  window.quickAdd = function(caseId, type) {
+    const roleName = type === 'temoin' ? 'Témoin' : 'Intimidateur';
     const cas = allCases.find(c => String(c.id) === String(caseId));
-    if (cas) {
-      if (!cas.eleves) cas.eleves = [];
-      cas.eleves.push({ nom: name, type: type });
+    if (!cas) return;
+
+    const victims = (cas.eleves || []).filter(e => e.type === 'victime' || e.type === 'VICTIME').map(e => e.nom);
+    if (victims.length === 0) {
+      toast("Impossible: Aucune victime n'est présente dans ce cas.", true);
+      return;
+    }
+
+    openCustomModal(`Ajouter un ${roleName}`, `Entrez le nom de l'élève et la victime à laquelle il est lié(e) :`, true, victims, (name, linkedVictim) => {
+      if (!name) return;
+      if (!linkedVictim) { toast("Veuillez sélectionner la victime ciblée.", true); return; }
       
-      // Update localStorage for CASES_KEY
+      if (!cas.eleves) cas.eleves = [];
+      cas.eleves.push({ nom: name, type: type, lie_a: linkedVictim });
       localStorage.setItem(CASES_KEY, JSON.stringify(allCases));
       renderAll();
-      toast(`${name} ajouté au cas.`);
-    }
-  }
+      toast(`${name} ajouté au cas (lié à ${linkedVictim}).`);
+    });
+  };
 
   function onFieldChange(el) {
     const caseId = el.dataset.case;
