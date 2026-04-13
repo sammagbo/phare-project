@@ -164,6 +164,7 @@
     transition: opacity .2s, transform .2s;
   }
   .role-chip.met { opacity: 1; transform: scale(1.04); }
+  .role-chip.optional { border-style: dashed; }
   .chip-victime     { background: #fdecea; color: #c0392b; border-color: #f5c6cb; }
   .chip-temoin      { background: #fef9e7; color: #9a7d0a; border-color: #f0e199; }
   .chip-intimidateur{ background: #f0e0f7; color: #6c2d8b; border-color: #d5b8e8; }
@@ -369,12 +370,13 @@
     <button class="btn-cancel" onclick="cancelEdit()">Annuler</button>
   </div>
 
-  <!-- Indicateurs de rôles requis -->
+  <!-- Indicateurs de rôles -->
   <div class="role-hint" id="role-hint" style="display:none">
     <span class="role-hint-label">Requis :</span>
     <span class="role-chip chip-victime" id="chip-victime">🔴 Victime</span>
-    <span class="role-chip chip-temoin" id="chip-temoin">🟡 Témoin</span>
-    <span class="role-chip chip-intimidateur" id="chip-intimidateur">🟣 Intimidateur</span>
+    <span class="role-hint-label" style="margin-left:.5rem">Optionnel :</span>
+    <span class="role-chip chip-temoin optional" id="chip-temoin">🟡 Témoin</span>
+    <span class="role-chip chip-intimidateur optional" id="chip-intimidateur">🟣 Intimidateur</span>
   </div>
 
   <!-- Liste des élèves -->
@@ -739,15 +741,11 @@
       return;
     }
 
-    // ── Règle métier : 1 Victime + 1 Témoin + 1 Intimidateur minimum ──
+    // ── Règle métier : au moins 1 Victime obligatoire ──
     const types = students.map(s => s.type);
-    const businessErrors = [];
-    if (!types.includes('VICTIME'))      businessErrors.push('Le cas doit avoir au moins une 🔴 Victime.');
-    if (!types.includes('TEMOIN'))       businessErrors.push('Le cas doit avoir au moins un 🟡 Témoin.');
-    if (!types.includes('INTIMIDATEUR')) businessErrors.push('Le cas doit avoir au moins un 🟣 Intimidateur.');
-    if (businessErrors.length > 0) {
-      showSummary(businessErrors);
-      toast('Composition du cas incomplète.', true);
+    if (!types.includes('VICTIME')) {
+      showSummary(['Le cas doit avoir au moins une 🔴 Victime.']);
+      toast('Ajoutez au moins une Victime.', true);
       return;
     }
 
