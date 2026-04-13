@@ -1,75 +1,73 @@
-# 🏫 pHARe — Gestion du harcèlement scolaire
+# React + TypeScript + Vite
 
-Application de gestion des cas de harcèlement scolaire dans le cadre du programme **pHARe**.  
-Outil d'attribution des entretiens entre les membres pHARe et les élèves impliqués.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Structure du projet
+Currently, two official plugins are available:
 
-```
-phare-project/
-├── frontend/
-│   ├── phare-reunion.html             ← Interface réunion (tableau d'attribution)
-│   └── phare-gestion-harcelement.html ← Interface gestion de cas (historique)
-├── backend/
-│   ├── pom.xml                        ← Dépendances Maven
-│   └── src/main/java/com/phare/
-│       ├── PhareApplication.java
-│       ├── WebConfig.java             ← CORS
-│       ├── controller/
-│       │   └── CasController.java     ← API REST
-│       ├── model/
-│       │   ├── Cas.java               ← Entité JPA
-│       │   ├── Eleve.java             ← Entité JPA
-│       │   └── TypeEleve.java         ← Enum
-│       ├── repository/
-│       │   ├── CasRepository.java
-│       │   └── EleveRepository.java
-│       └── service/
-│           └── CasService.java
-├── .gitignore
-└── README.md
-```
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Prérequis
+## React Compiler
 
-- Java 17+
-- Maven 3.8+
-- PostgreSQL 14+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Installation
+## Expanding the ESLint configuration
 
-### 1. Base de données
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```sql
-CREATE DATABASE phare_db;
-CREATE USER phare_user WITH PASSWORD 'phare_password';
-GRANT ALL PRIVILEGES ON DATABASE phare_db TO phare_user;
-\c phare_db
-GRANT ALL ON SCHEMA public TO phare_user;
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-### 2. Backend
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```bash
-cd backend
-mvn spring-boot:run
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-### 3. Frontend
-
-Ouvrir `frontend/phare-reunion.html` dans le navigateur.
-
-## API REST
-
-| Méthode  | Endpoint             | Description              |
-|----------|----------------------|--------------------------|
-| `GET`    | `/api/cas`           | Lister tous les cas      |
-| `GET`    | `/api/cas/{id}`      | Obtenir un cas           |
-| `GET`    | `/api/cas?search=x`  | Rechercher par élève     |
-| `POST`   | `/api/cas`           | Créer un cas             |
-| `PUT`    | `/api/cas/{id}`      | Modifier un cas          |
-| `DELETE` | `/api/cas/{id}`      | Supprimer un cas         |
-
-## Auteur
-
-**Sammy K. Magbo** — Vie Scolaire, Lycée Molière
