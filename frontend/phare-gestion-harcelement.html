@@ -727,6 +727,11 @@
         <div class="field-error" data-error="nom">Le nom est obligatoire.</div>
       </div>
       <div class="field">
+        <label class="field-label">Classe</label>
+        <input type="text" placeholder="Ex: 6ème A" data-field="classe">
+        <div class="field-error" data-error="classe">La classe est obligatoire.</div>
+      </div>
+      <div class="field">
         <label class="field-label">Type</label>
         <select data-field="type">
           <option value="" disabled selected>Choisir…</option>
@@ -760,6 +765,11 @@
       card.querySelector('[data-error="nom"]').classList.remove('visible');
       card.classList.remove('error');
       updateVictimDropdowns(); // Nom updated -> update lie_a for others
+    });
+    card.querySelector('[data-field="classe"]').addEventListener('input', function() {
+      this.classList.remove('invalid');
+      card.querySelector('[data-error="classe"]').classList.remove('visible');
+      card.classList.remove('error');
     });
     card.querySelector('[data-field="type"]').addEventListener('change', function() {
       this.classList.remove('invalid');
@@ -803,6 +813,7 @@
     card.querySelector('[data-field="type"]').value = typeLower;
     card.setAttribute('data-type', typeLower);
     if (data.membre) card.querySelector('[data-field="membre"]').value = data.membre;
+    if (data.classe) card.querySelector('[data-field="classe"]').value = data.classe;
     
     // Refresh connections, then restore lie_a
     updateVictimDropdowns();
@@ -838,11 +849,13 @@
     cards.forEach(card => {
       idx++;
       const nomInput   = card.querySelector('[data-field="nom"]');
+      const classeInput= card.querySelector('[data-field="classe"]');
       const typeSelect = card.querySelector('[data-field="type"]');
       const membre     = card.querySelector('[data-field="membre"]').value;
       const selectLink = card.querySelector('[data-field="lie_a"]');
       
       const nom  = nomInput.value.trim();
+      const classe = classeInput.value.trim();
       const type = typeSelect.value;
       const lie_a= selectLink.value;
       let ok = true;
@@ -851,6 +864,12 @@
         nomInput.classList.add('invalid');
         card.querySelector('[data-error="nom"]').classList.add('visible');
         errors.push(`Élève ${idx} : nom manquant`);
+        ok = false;
+      }
+      if (!classe) {
+        classeInput.classList.add('invalid');
+        card.querySelector('[data-error="classe"]').classList.add('visible');
+        errors.push(`Élève ${idx} : classe manquante`);
         ok = false;
       }
       if (!type) {
@@ -864,12 +883,12 @@
       if (isRoleRequiringLink && !lie_a) {
         selectLink.classList.add('invalid');
         card.querySelector('[data-error="lie_a"]').classList.add('visible');
-        errors.push(`Élève ${idx} : doit être lié à une victime`);
+        errors.push(`Élève ${idx + 1} : doit être lié à une victime`);
         ok = false;
       }
 
       if (!ok) card.classList.add('error');
-      else students.push({ nom, type: TO_BACK[type] || type, membre, lie_a });
+      else students.push({ nom, classe, type: TO_BACK[type] || type, membre, lie_a });
     });
 
     return { valid: errors.length === 0, students, errors };

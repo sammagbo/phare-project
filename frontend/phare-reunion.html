@@ -444,7 +444,8 @@ fdfbff; border-left: 4px solid var(--pi); }
     </div>
     <div class="member-input-group" style="flex-direction: column; gap: 1rem;">
       <p id="custom-modal-msg" style="margin: 0; color: var(--text-color); font-size: 1.1rem; line-height: 1.4;"></p>
-      <input type="text" id="custom-modal-input" style="display: none; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px;">
+      <input type="text" id="custom-modal-input" placeholder="Nom de l'élève" style="display: none; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px;">
+      <input type="text" id="custom-modal-input-2" placeholder="Classe (ex: 6ème A)" style="display: none; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px;">
       <select id="custom-modal-select" style="display: none; font-family: inherit; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px; font-size: 0.95rem;"></select>
       <div style="display: flex; gap: 0.5rem; justify-content: flex-end; width: 100%; margin-top: 0.5rem;">
         <button class="btn btn-ghost" onclick="closeCustomModal()">Annuler</button>
@@ -632,7 +633,7 @@ fdfbff; border-left: 4px solid var(--pi); }
                 <span class="student-type">${td.icon} ${td.label}</span>
               </div>
               <div class="student-name" style="display: flex; flex-direction: column; justify-content: center;">
-                <div><span class="status-dot pending"></span>${e.nom}</div>
+                <div><span class="status-dot pending"></span>${e.nom} <span style="font-size: 0.85em; opacity: 0.8;">(${e.classe || 'N/A'})</span></div>
                 ${e.lie_a ? `<div style="font-size: .7em; opacity: 0.65; margin-top: 2px;">Lié à: ${e.lie_a}</div>` : ''}
               </div>
               <select class="f-membre" data-case="${caseId}" data-idx="${i}" onchange="onFieldChange(this)">
@@ -702,7 +703,7 @@ fdfbff; border-left: 4px solid var(--pi); }
           <div class="dossier-tag">${td.label}</div>
           <div class="dossier-date">📅 ${formatDate(item.entretien.date)} à ${item.entretien.heure || '--:--'}</div>
           <div class="dossier-student" style="display:flex; flex-direction:column; gap:2px; align-items:flex-start;">
-            <div>${td.icon} ${item.student.nom}</div>
+            <div>${td.icon} ${item.student.nom} <span style="font-size: 0.85em; opacity: 0.8;">(${item.student.classe || 'N/A'})</span></div>
             ${item.student.lie_a ? `<div style="font-size: .8em; opacity: 0.7; font-weight: 500; padding-left: 1.5rem;">Lié à: ${item.student.lie_a}</div>` : ''}
           </div>
           <div class="dossier-membre">👤 Membre: ${item.entretien.membre}</div>
@@ -748,12 +749,17 @@ fdfbff; border-left: 4px solid var(--pi); }
     document.getElementById('custom-modal-msg').textContent = msg;
     
     const inputEl = document.getElementById('custom-modal-input');
+    const inputEl2= document.getElementById('custom-modal-input-2');
+
     if (showInput) {
       inputEl.style.display = 'block';
       inputEl.value = '';
+      inputEl2.style.display = 'block';
+      inputEl2.value = '';
       inputEl.focus();
     } else {
       inputEl.style.display = 'none';
+      inputEl2.style.display = 'none';
     }
     
     const selectEl = document.getElementById('custom-modal-select');
@@ -775,7 +781,8 @@ fdfbff; border-left: 4px solid var(--pi); }
     newBtn.addEventListener('click', () => {
       onConfirm(
         showInput ? inputEl.value.trim() : true,
-        (selectOptions && selectOptions.length > 0) ? selectEl.value : null
+        (selectOptions && selectOptions.length > 0) ? selectEl.value : null,
+        showInput ? inputEl2.value.trim() : null
       );
       closeCustomModal();
     });
@@ -829,12 +836,13 @@ fdfbff; border-left: 4px solid var(--pi); }
       return;
     }
 
-    openCustomModal(`Ajouter un ${roleName}`, `Entrez le nom de l'élève et la victime à laquelle il est lié(e) :`, true, victims, (name, linkedVictim) => {
+    openCustomModal(`Ajouter un ${roleName}`, `Entrez le nom, la classe de l'élève et la victime à laquelle il est lié(e) :`, true, victims, (name, linkedVictim, classe) => {
       if (!name) return;
+      if (!classe || classe === '') { toast("Veuillez indiquer la classe.", true); return; }
       if (!linkedVictim) { toast("Veuillez sélectionner la victime ciblée.", true); return; }
       
       if (!cas.eleves) cas.eleves = [];
-      cas.eleves.push({ nom: name, type: type, lie_a: linkedVictim });
+      cas.eleves.push({ nom: name, classe: classe, type: type, lie_a: linkedVictim });
       localStorage.setItem(CASES_KEY, JSON.stringify(allCases));
       renderAll();
       toast(`${name} ajouté au cas (lié à ${linkedVictim}).`);
