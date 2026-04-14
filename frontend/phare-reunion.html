@@ -912,8 +912,6 @@
     }
   };
 
-  function completeEdit() {
-  }
 
   function openCustomModal(title, msg, showInput, selectOptions, onConfirm) {
     document.getElementById('custom-modal-title').textContent = title;
@@ -968,14 +966,7 @@
     });
   };
 
-  window.unscheduleInterview = function(caseId, idx) {
-    if (reunionData[caseId]?.entretiens[idx]) {
-      delete reunionData[caseId].entretiens[idx];
-      saveReunions();
-      renderAll();
-      toast("Entretien retiré du planning (retour en file d'attente)");
-    }
-  };
+  // unscheduleInterview is defined above (lines 900-913) with confirm dialog
 
   window.deleteCaseAction = function(caseId) {
     openCustomModal("Supprimer le cas", "⚠️ ATTENTION : Voulez-vous vraiment supprimer CE CAS ENTIER (incluant la victime et tous les intervenants liés) ?", false, null, (alertConfirmed) => {
