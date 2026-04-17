@@ -56,7 +56,17 @@ phare-project/
 
 ## Lancement
 
-### Backend Java (port 8080)
+### Modo Automático (Recomendado)
+Para iniciar todos os serviços de uma vez (Auth, API e Frontend):
+```bash
+./run_phare.sh
+```
+O script abrirá automaticamente o navegador em `http://localhost:5000/login.html`.
+
+### Modo Manual
+Se preferir rodar cada componente separadamente:
+
+#### Backend Java (port 8080)
 ```bash
 cd backend
 mvn spring-boot:run
