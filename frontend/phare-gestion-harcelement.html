@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>pHARe â€” Gestion de cas de harcÃ¨lement</title>
+<title>pHARe — Gestion de cas de harcèlement</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
 
-  /* â”€â”€ Navigation â”€â”€ */
+  /* ── Navigation ── */
   .top-nav {
     display: flex; justify-content: center; gap: .75rem;
     margin-bottom: 2.5rem; padding: .65rem;
@@ -48,7 +48,7 @@
     --intimidateur-h: 282;
   }
 
-  /* â”€â”€ Custom Scrollbar â”€â”€ */
+  /* ── Custom Scrollbar ── */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { 
@@ -69,7 +69,7 @@
 
   .container { max-width: 800px; margin: 0 auto; }
 
-  /* â”€â”€ Header â”€â”€ */
+  /* ── Header ── */
   header { text-align: center; margin-bottom: 2.5rem; position: relative; }
   header h1 {
     font-family: 'Fraunces', serif;
@@ -86,7 +86,7 @@
     letter-spacing: 0.1em;
   }
 
-  /* â”€â”€ API status badge â”€â”€ */
+  /* ── API status badge ── */
   .api-badge {
     display: inline-block; margin-top: .5rem;
     font-size: .72rem; font-weight: 600; padding: .25rem .7rem;
@@ -95,7 +95,7 @@
   .api-badge.online  { background: #e8f0eb; color: #1a5632; }
   .api-badge.offline { background: #fdf0ee; color: #c0392b; }
 
-  /* â”€â”€ Section titles â”€â”€ */
+  /* ── Section titles ── */
   .section-title {
     font-family: 'Fraunces', serif;
     font-size: 1.2rem;
@@ -105,13 +105,13 @@
     border-bottom: 2px solid var(--primary-light);
   }
 
-  /* â”€â”€ Labels â”€â”€ */
+  /* ── Labels ── */
   label.field-label {
     font-size: .8rem; font-weight: 700; color: var(--text);
     text-transform: uppercase; letter-spacing: .5px;
   }
 
-  /* â”€â”€ Global fields â”€â”€ */
+  /* ── Global fields ── */
   .global-fields { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
   .global-fields .field { flex: 1; display: flex; flex-direction: column; gap: .4rem; }
   .global-fields input {
@@ -122,7 +122,7 @@
   }
   .global-fields input:focus { outline: none; border-color: var(--primary); }
 
-  /* â”€â”€ Student cards â”€â”€ */
+  /* ── Student cards ── */
   #students-list { display: flex; flex-direction: column; gap: 1rem; }
   .student-card {
     background: var(--card);
@@ -163,14 +163,14 @@
   }
   .btn-delete:hover { background: rgba(192,57,43,.08); }
 
-  /* â”€â”€ Empty state â”€â”€ */
+  /* ── Empty state ── */
   .empty-state {
     text-align: center; padding: 2rem 1rem;
     color: var(--text-light); font-size: .95rem;
     border: 2px dashed var(--border); border-radius: var(--radius); background: var(--card);
   }
 
-  /* â”€â”€ Role requirement hint â”€â”€ */
+  /* ── Role requirement hint ── */
   .role-hint {
     display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
     align-items: center;
@@ -188,7 +188,7 @@
   .chip-intimidateur{ background: #f0e0f7; color: #6c2d8b; border-color: #d5b8e8; }
   .role-hint-label  { font-size: .75rem; color: var(--text-light); margin-right: .25rem; }
 
-  /* â”€â”€ Buttons â”€â”€ */
+  /* ── Buttons ── */
   .actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
   .btn {
     display: inline-flex; align-items: center; gap: .45rem;
@@ -212,14 +212,14 @@
   .btn-import { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
   .btn-import:hover { background: var(--primary-light); }
 
-  /* â”€â”€ iPad Optimizations â”€â”€ */
+  /* ── iPad Optimizations ── */
   @media (pointer: coarse) {
     .btn { padding: .7rem 1.3rem; }
     .student-card input, .student-card select, .global-fields input { padding: .65rem; font-size: 1rem; }
     .btn-delete { font-size: 1.4rem; padding: .5rem; }
   }
 
-  /* â”€â”€ Toast â”€â”€ */
+  /* ── Toast ── */
   .toast {
     position: fixed; bottom: 2rem; left: 50%;
     transform: translateX(-50%) translateY(80px);
@@ -232,7 +232,7 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.error { background: var(--accent); }
 
-  /* â”€â”€ History â”€â”€ */
+  /* ── History ── */
   .history-list { display: flex; flex-direction: column; gap: 1rem; }
   .history-card {
     background: var(--card);
@@ -300,7 +300,7 @@
   .student-card[data-type="temoin"] { border-left: 4px solid #d4ac0d; }
   .student-card[data-type="intimidateur"] { border-left: 4px solid #7d3c98; }
 
-  /* â”€â”€ Search bar â”€â”€ */
+  /* ── Search bar ── */
   .search-bar { display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem; }
   .search-bar input {
     flex: 1; padding: .6rem .85rem;
@@ -311,7 +311,7 @@
   .search-bar input:focus { outline: none; border-color: var(--primary); }
   .search-count { font-size: .8rem; color: var(--text-light); font-weight: 500; white-space: nowrap; }
 
-  /* â”€â”€ Print â”€â”€ */
+  /* ── Print ── */
   @media print {
     body { background: #fff; padding: 0; }
     .actions, .search-bar, .btn-sm, .edit-banner, .error-summary,
@@ -354,7 +354,7 @@
     .actions { flex-direction: column; align-items: stretch; }
   }
 
-  /* â”€â”€ Member Manager Modal â”€â”€ */
+  /* ── Member Manager Modal ── */
   .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,.4); backdrop-filter: blur(4px);
@@ -402,14 +402,14 @@
 <div class="container">
   <!-- Navigation -->
   <nav class="top-nav">
-    <a class="nav-link active" href="phare-gestion-harcelement.html">ðŸ“‹ Gestion des cas</a>
-    <a class="nav-link" href="phare-reunion.html">ðŸ“… RÃ©union & Entretiens</a>
+    <a class="nav-link active" href="phare-gestion-harcelement.html">📋 Gestion des cas</a>
+    <a class="nav-link" href="phare-reunion.html">📅 Réunion & Entretiens</a>
   </nav>
 
   <header>
     <h1>Projet pHARe</h1>
-    <p>Gestion des cas de harcÃ¨lement scolaire</p>
-    <span class="api-badge offline" id="api-status">â³ Connexionâ€¦</span>
+    <p>Gestion des cas de harcèlement scolaire</p>
+    <span class="api-badge offline" id="api-status">⏳ Connexion…</span>
   </header>
 
   <!-- Champs globaux -->
@@ -426,42 +426,42 @@
     </div>
   </div>
 
-  <!-- RÃ©sumÃ© des erreurs -->
+  <!-- Résumé des erreurs -->
   <div class="error-summary" id="error-summary"></div>
 
-  <!-- BanniÃ¨re mode Ã©dition -->
+  <!-- Bannière mode édition -->
   <div class="edit-banner" id="edit-banner">
-    <span>âœï¸ Modification du cas en coursâ€¦</span>
+    <span>✍️ Modification du cas en cours…</span>
     <button class="btn-cancel" data-action="cancel-edit">Annuler</button>
   </div>
 
-  <!-- Indicateurs de rÃ´les -->
+  <!-- Indicateurs de rôles -->
   <div class="role-hint" id="role-hint" style="display:none">
     <span class="role-hint-label">Requis :</span>
-    <span class="role-chip chip-victime" id="chip-victime">ðŸ”´ Victime</span>
+    <span class="role-chip chip-victime" id="chip-victime">🔴 Victime</span>
     <span class="role-hint-label" style="margin-left:.5rem">Optionnel :</span>
-    <span class="role-chip chip-temoin optional" id="chip-temoin">ðŸŸ¡ TÃ©moin</span>
-    <span class="role-chip chip-intimidateur optional" id="chip-intimidateur">ðŸŸ£ Intimidateur</span>
+    <span class="role-chip chip-temoin optional" id="chip-temoin">🟡 Témoin</span>
+    <span class="role-chip chip-intimidateur optional" id="chip-intimidateur">🟣 Intimidateur</span>
   </div>
 
-  <!-- Liste des Ã©lÃ¨ves -->
+  <!-- Liste des élèves -->
   <div id="students-list"></div>
 
   <!-- Boutons -->
   <div class="actions">
-    <button class="btn btn-secondary" data-action="add-student">ï¼‹ Ajouter un Ã©lÃ¨ve</button>
-    <button class="btn btn-primary" data-action="save-case">ðŸ’¾ Enregistrer</button>
-    <button class="btn btn-import" data-action="import-json">ðŸ“‚ Importer JSON</button>
+    <button class="btn btn-secondary" data-action="add-student">＋ Ajouter un élève</button>
+    <button class="btn btn-primary" data-action="save-case">💾 Enregistrer</button>
+    <button class="btn btn-import" data-action="import-json">📂 Importer JSON</button>
     <input type="file" id="import-file" style="display:none" accept=".json">
-    <button class="btn btn-export" data-action="open-members">ðŸ‘¥ Ã‰quipe</button>
-    <button class="btn btn-export" data-action="export-json">ðŸ“„ Exporter JSON</button>
-    <button class="btn btn-print" data-action="print-report">ðŸ–¨ï¸ Imprimer</button>
+    <button class="btn btn-export" data-action="open-members">👥 Équipe</button>
+    <button class="btn btn-export" data-action="export-json">📄 Exporter JSON</button>
+    <button class="btn btn-print" data-action="print-report">🖨️ Imprimer</button>
   </div>
 
   <!-- Historique -->
   <h2 class="section-title">Historique des cas</h2>
   <div class="search-bar">
-    <input type="text" id="search-input" placeholder="Rechercher un Ã©lÃ¨ve par nomâ€¦">
+    <input type="text" id="search-input" placeholder="Rechercher un élève par nom…">
     <span class="search-count" id="search-count"></span>
   </div>
   <div id="history-list" class="history-list"></div>
@@ -474,11 +474,11 @@
   <div class="modal-card">
     <div class="modal-header">
       <h2>Membres pHARe</h2>
-      <button class="btn-close" data-action="close-members">âœ•</button>
+      <button class="btn-close" data-action="close-members">✕</button>
     </div>
     
     <div class="member-input-group">
-      <input type="text" id="new-member-name" placeholder="Nom du nouveau membreâ€¦">
+      <input type="text" id="new-member-name" placeholder="Nom du nouveau membre…">
       <button class="btn btn-primary" data-action="add-member">Ajouter</button>
     </div>
 
@@ -488,7 +488,6 @@
   </div>
 </div>
 
-<script>
 <script src="../node_modules/gsap/dist/gsap.min.js"></script>
 <script type="module" src="js/ui.js"></script>
 </body>
