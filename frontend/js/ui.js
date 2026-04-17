@@ -544,10 +544,10 @@ function processImport(event) {
       const data = JSON.parse(e.target.result);
       if (confirm(`Importer ${data.length} cas ? Cela remplacera vos données locales.`)) {
         store.importJSON(data);
-        toast('Dados importados com sucesso!');
+        toast('Données importées avec succès !');
       }
     } catch (err) {
-      toast('Erro ao ler arquivo JSON.', true);
+      toast('Erreur lors de la lecture du fichier JSON.', true);
     }
     event.target.value = ''; 
   };
