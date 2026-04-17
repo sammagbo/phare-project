@@ -53,7 +53,22 @@ export function setEditingId(id) {
   notify();
 }
 
-export function loadMembers() {
+export async function loadMembers() {
+  // Try API first
+  try {
+    const { fetchMembres } = await import('./membre-api.js');
+    const apiMembers = await fetchMembres();
+    if (apiMembers && Array.isArray(apiMembers)) {
+      state.members = apiMembers.map(m => m.nom);
+      state._membresDb = apiMembers; // Keep full objects for delete by ID
+      localStorage.setItem(MEMBERS_KEY, JSON.stringify(state.members));
+      return;
+    }
+  } catch (e) {
+    console.warn('Membres API unavailable, using localStorage', e.message);
+  }
+
+  // Fallback: localStorage
   const saved = localStorage.getItem(MEMBERS_KEY);
   if (saved) {
     try {
@@ -67,8 +82,23 @@ export function loadMembers() {
   }
 }
 
-export function addMember(name) {
+export async function addMember(name) {
   if (!name || state.members.includes(name)) return false;
+
+  // Try API
+  try {
+    const { addMembre } = await import('./membre-api.js');
+    const result = await addMembre(name);
+    if (result && result.nom) {
+      await loadMembers(); // Refresh from API
+      notify();
+      return true;
+    }
+  } catch (e) {
+    console.warn('Add membre API failed, saving locally');
+  }
+
+  // Fallback: local only
   state.members.push(name);
   state.members.sort();
   localStorage.setItem(MEMBERS_KEY, JSON.stringify(state.members));
@@ -76,7 +106,24 @@ export function addMember(name) {
   return true;
 }
 
-export function removeMember(index) {
+export async function removeMember(index) {
+  const name = state.members[index];
+
+  // Try API (need the DB id)
+  try {
+    const dbEntry = (state._membresDb || []).find(m => m.nom === name);
+    if (dbEntry) {
+      const { deleteMembre } = await import('./membre-api.js');
+      await deleteMembre(dbEntry.id);
+      await loadMembers();
+      notify();
+      return;
+    }
+  } catch (e) {
+    console.warn('Delete membre API failed, removing locally');
+  }
+
+  // Fallback: local only
   state.members.splice(index, 1);
   localStorage.setItem(MEMBERS_KEY, JSON.stringify(state.members));
   notify();

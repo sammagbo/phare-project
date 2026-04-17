@@ -13,483 +13,62 @@
   import { checkAuth } from './js/auth.js';
   checkAuth();
 </script>
+<link rel="stylesheet" href="css/index.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: hsl(30, 24%, 98%);
-    --card: #ffffff;
-    --primary: hsl(156, 50%, 14%);
-    --primary-hover: hsl(156, 50%, 10%);
-    --primary-light: hsl(156, 30%, 94%);
-    --accent: hsl(6, 63%, 46%);
-    --accent-light: hsla(6, 63%, 46%, 0.08);
-    --text: hsl(156, 30%, 10%);
-    --text-light: hsl(156, 12%, 40%);
-    --border: hsl(30, 20%, 90%);
-    --shadow: 0 4px 20px hsla(156, 50%, 10%, 0.04);
-    --radius: 12px;
-    
-    /* Semantic Colors from Gestion */
-    --victime: hsl(6, 63%, 46%);
-    --temoin: hsl(45, 85%, 38%);
-    --pi: hsl(282, 44%, 36%);
-  }
-
-  /* ── Custom Scrollbar ── */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { 
-    background: hsl(156, 20%, 80%); 
-    border-radius: 10px; border: 2px solid var(--bg);
-  }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(156, 20%, 60%); }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-    line-height: 1.6;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E%22);
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Interaction Standards */
-  [data-action], button, a, select, input { 
-    cursor: pointer; 
-    touch-action: manipulation; 
-  }
-  input[type="text"], input[type="date"], input[type="time"] { cursor: text; }
-
-  .container { max-width: 1000px; margin: 0 auto; }
-
-  /* ── Navigation ── */
-  .top-nav {
-    display: flex; justify-content: center; gap: .75rem;
-    margin-bottom: 2.5rem; padding: .65rem;
-    background: hsla(0, 0%, 100%, 0.7); backdrop-filter: blur(10px);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow); border: 1.5px solid var(--border);
-    will-change: transform, opacity;
-  }
-  .nav-link {
-    display: inline-flex; align-items: center; gap: .4rem;
-    padding: .6rem 1.25rem; border-radius: 10px;
-    font-family: inherit; font-size: .88rem; font-weight: 600;
-    text-decoration: none; color: var(--text-light);
-    transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @media (hover: hover) {
-    .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
-  }
-  .nav-link:active { background: var(--primary-light); opacity: 0.8; transform: scale(0.98); }
-  .nav-link.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px hsla(156, 50%, 10%, 0.15); }
-
-  /* ── Header ── */
-  header { text-align: center; margin-bottom: 1.5rem; will-change: transform, opacity; }
-  header h1 {
-    font-family: 'Fraunces', serif;
-    font-size: 1.8rem;
-    color: var(--primary);
-    letter-spacing: -.5px;
-  }
-  header p { color: var(--text-light); margin-top: .3rem; font-size: .9rem; }
-
-  /* ── Empty state ── */
-  .empty-state {
-    text-align: center; padding: 3rem 1.5rem;
-    color: var(--text-light); font-size: .95rem;
-    border: 2px dashed var(--border); border-radius: var(--radius); background: var(--card);
-  }
-  .empty-state .emoji { font-size: 2.5rem; margin-bottom: .75rem; display: block; }
-  .empty-state a {
-    display: inline-flex; align-items: center; gap: .4rem;
-    margin-top: 1rem; padding: .6rem 1.2rem;
-    background: var(--primary); color: #fff; border-radius: 8px;
-    text-decoration: none; font-weight: 600; font-size: .88rem;
-    transition: background .2s;
-  }
-  .empty-state a:hover { background: var(--primary-hover); }
-
-  /* ── Section titles ── */
-  /* ── Sections ── */
+  /* ── Page Specific Overrides ── */
   .planning-layout { display: flex; flex-direction: column; gap: 3rem; }
-  .pending-section, .scheduled-section { width: 100%; }
   
   .section-header {
     display: flex; align-items: center; justify-content: space-between;
-    margin: 2.5rem 0 1.25rem; padding-bottom: .6rem;
+    margin: 2rem 0 1.5rem; padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--primary-light);
   }
-  .section-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--primary); }
-
-  /* ── Case Cards (Pending) ── */
+  
   .cases-list { display: flex; flex-direction: column; gap: 1.5rem; }
+  
   .case-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    position: relative;
-    transition: transform .3s ease, box-shadow .3s ease;
-    animation: dossierReveal .6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    will-change: transform, opacity;
+    border-left: 6px solid var(--primary);
   }
-  @keyframes dossierReveal {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .case-card.highlight { 
-    border-color: var(--primary); 
-    box-shadow: 0 12px 40px hsla(156, 50%, 10%, 0.1), 0 0 0 3px hsla(156, 50%, 10%, 0.05); 
-  }
-  .case-card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-    width: 6px; background: var(--primary); opacity: 0.4;
-  }
-
-  /* ── Interview Dossier Cards (Scheduled) ── */
-  .scheduled-grid {
-    display: flex; flex-direction: column; gap: 1.5rem;
-  }
-  .dossier-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    box-shadow: var(--shadow);
-    position: relative; overflow: hidden;
-    display: grid; grid-template-rows: auto 1fr auto; gap: .75rem;
-    transition: all .25s ease;
-    animation: dossierReveal .6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    will-change: transform, opacity;
-  }
-  @media (hover: hover) {
-    .dossier-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px hsla(156, 50%, 10%, 0.08); }
-  }
-  .dossier-card:active { transform: scale(0.99); }
-  .dossier-card::before {
-    content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%;
-    background: var(--primary); opacity: 0.6;
-  }
-  .dossier-card[data-type="victime"]::before { background: var(--victime); }
-  .dossier-card[data-type="temoin"]::before { background: var(--temoin); }
-  .dossier-card[data-type="intimidateur"]::before { background: var(--pi); }
-
-  .dossier-date { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--primary); font-weight: 700; margin-bottom: .25rem; }
-  .dossier-student { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: .5rem; }
-  .dossier-membre { font-size: .88rem; color: var(--text-light); font-weight: 500; }
-  .dossier-tag { 
-    position: absolute; top: 1.25rem; right: 1.25rem;
-    font-size: .65rem; font-weight: 800; padding: .25rem .6rem; 
-    border-radius: 20px; text-transform: uppercase; letter-spacing: .05em;
-    background: var(--primary-light); color: var(--primary);
-  }
-
-  .dossier-actions {
-    margin-top: .5rem; padding-top: .75rem;
-    border-top: 1px solid var(--border);
-    display: flex; gap: .5rem; justify-content: flex-end;
-  }
-  .btn-icon {
-    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 8px; border: 1.2px solid var(--border); background: var(--card);
-    cursor: pointer; transition: all .2s; font-size: .9rem;
-  }
-  @media (hover: hover) {
-    .btn-icon:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
-    .btn-icon.delete:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
-  }
-  .btn-icon:active { transform: scale(0.9); background: var(--primary-light); }
-
-  .case-header {
-    background: hsla(30, 20%, 96%, 0.4);
-    padding: 1rem 1.25rem;
-    border-bottom: 1.5px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .case-title { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--primary); font-weight: 700; }
-  .case-meta { display: flex; gap: 1rem; align-items: center; font-size: .85rem; color: var(--text-light); }
-  .case-meta .badge {
-    padding: .25rem .65rem; border-radius: 20px;
-    font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
-    border: 1px solid;
-  }
-  .badge-victime  { background: hsla(6, 63%, 46%, 0.08); color: var(--victime);  border-color: hsla(6, 63%, 46%, 0.2); }
-  .badge-temoin   { background: hsla(45, 85%, 38%, 0.08); color: var(--temoin); border-color: hsla(45, 85%, 38%, 0.2); }
-  .badge-intimidateur { background: hsla(282, 44%, 36%, 0.08); color: var(--pi); border-color: hsla(282, 44%, 36%, 0.2); }
-
-  .case-body { padding: .5rem 0; }
+  
   .row-student {
     display: grid;
-    grid-template-columns: 100px 1.2fr 1fr 140px 110px;
-    gap: .75rem;
-    padding: .75rem 1.25rem;
-    align-items: center;
-    border-bottom: 1px solid hsla(30, 20%, 90%, 0.5);
-    transition: background .2s;
-  }
-  .row-student:hover { background: hsla(30, 20%, 94%, 0.3); }
-  .row-student:last-child { border-bottom: none; }
-
-  .row-student.victime { border-left: 4px solid var(--victime); background: hsla(6, 63%, 46%, 0.01); }
-  .row-student.temoin { border-left: 4px solid var(--temoin); background: hsla(45, 85%, 38%, 0.01); }
-  .row-student.intimidateur { border-left: 4px solid var(--pi); background: hsla(282, 44%, 36%, 0.01); }
-
-  /* ── Case Grouping (Scheduled Section) ── */
-  .case-group-card {
-    background: var(--card); border: 1.5px solid var(--border); border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.035); overflow: hidden;
-    animation: dossierReveal .5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    transition: box-shadow .3s ease;
-    will-change: transform, opacity;
-  }
-  @media (hover: hover) {
-    .case-group-card:hover { box-shadow: 0 8px 30px hsla(156, 50%, 10%, 0.07); }
-  }
-  .case-group-header {
-    background: linear-gradient(135deg, hsla(156, 50%, 15%, 0.04), hsla(30, 20%, 96%, 0.5));
-    padding: 1rem 1.25rem;
-    border-bottom: 1.5px solid var(--border); display: flex; 
-    justify-content: space-between; align-items: center;
-  }
-  .case-group-header h3 { font-family: 'Fraunces', serif; color: var(--primary); font-size: 1.15rem; margin: 0; }
-  .case-group-body { padding: 0; }
-  .case-group-footer {
-    display: flex; gap: 0.5rem; justify-content: flex-end; padding: 0.75rem 1.25rem;
-    background: hsla(30, 20%, 96%, 0.4); border-top: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
-  .case-student-row {
-    display: grid; grid-template-columns: 95px 1.5fr 1fr 1fr auto;
-    gap: .75rem; align-items: center; padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid hsla(30, 20%, 90%, 0.5); font-size: 0.9rem;
-    transition: background .2s;
-  }
-  .case-student-row:hover { background: hsla(30, 20%, 94%, 0.3); }
-  .case-student-row:last-child { border-bottom: none; }
-  .case-student-row.victime { border-left: 4px solid var(--victime); }
-  .case-student-row.temoin { border-left: 4px solid var(--temoin); }
-  .case-student-row.intimidateur { border-left: 4px solid var(--pi); }
-  .case-student-badge {
-    font-size: 0.68rem; font-weight: 800; text-transform: uppercase; padding: 0.2rem 0.55rem;
-    border-radius: 20px; text-align: center; border: 1px solid; display: inline-block;
-    white-space: nowrap;
-  }
-  .csb-victime { background: hsla(6, 63%, 46%, 0.08); color: var(--victime); border-color: hsla(6, 63%, 46%, 0.2); }
-  .csb-temoin { background: hsla(45, 85%, 38%, 0.08); color: var(--temoin); border-color: hsla(45, 85%, 38%, 0.2); }
-  .csb-intimidateur { background: hsla(282, 44%, 36%, 0.08); color: var(--pi); border-color: hsla(282, 44%, 36%, 0.2); }
-
-  .student-name { font-weight: 600; font-size: .88rem; }
-  .student-type {
-    font-size: .72rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .3px; opacity: .7;
-  }
-
-  .row-student select, .row-student input {
-    padding: .45rem .6rem; border: 1.5px solid transparent; border-radius: 6px;
-    font-size: .85rem; background: #fafaf8; transition: all .15s;
-    font-family: inherit;
-  }
-  .row-student select:focus, .row-student input:focus {
-    outline: none; border-color: var(--primary); background: #fff;
-  }
-
-  /* ── Status indicators ── */
-  .status-dot {
-    display: inline-block; width: 8px; height: 8px;
-    border-radius: 50%; margin-right: .35rem;
-  }
-  .status-dot.pending { background: #d4ac0d; }
-  .status-dot.scheduled { background: #27ae60; }
-
-  /* ── Buttons ── */
-  .actions { margin-top: 1.5rem; display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; }
-  .btn {
-    display: inline-flex; align-items: center; gap: .4rem;
-    padding: .65rem 1.2rem; border: none; border-radius: 8px;
-    font-family: inherit; font-size: .85rem; font-weight: 700;
-    cursor: pointer; transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @media (hover: hover) {
-    .btn:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px hsla(156, 50%, 10%, 0.12);
-    }
-  }
-  .btn:active { transform: translateY(0) scale(.98); opacity: 0.9; }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-hover); }
-  .btn-outline { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
-  .btn-outline:hover { background: var(--primary-light); }
-  .btn-ghost { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
-  .btn-ghost:hover { background: #fdfdfb; border-color: var(--primary); color: var(--primary); }
-
-  /* ── Summary cards ── */
-  .summary-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: 100px 1.5fr 1fr 140px 110px;
     gap: 1rem;
+    padding: 1rem 1.5rem;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
   }
-  .summary-card {
-    background: var(--card);
-    border: 1.5px solid var(--border); border-radius: var(--radius);
-    padding: 1.25rem; box-shadow: var(--shadow);
-    transition: transform .25s ease;
-  }
-  .summary-card:hover { transform: translateY(-3px); }
-  .summary-card h4 { 
-    font-family: 'Fraunces', serif; font-size: 1rem; 
-    margin-bottom: .75rem; color: var(--primary); 
-    border-bottom: 1.5px solid var(--primary-light);
-    padding-bottom: .4rem;
-  }
-  .summary-card ul { list-style: none; }
-  .summary-card li {
-    font-size: .88rem; color: var(--text-light);
-    padding: .4rem 0; border-bottom: 1px solid hsla(30, 20%, 90%, 0.5);
-    display: flex; align-items: center; gap: .5rem;
-  }
-  .summary-card li:last-child { border-bottom: none; }
+  .row-student:last-child { border-bottom: none; }
+  
+  .row-student.victime { border-left: 4px solid var(--victime); }
+  .row-student.temoin { border-left: 4px solid var(--temoin); }
+  .row-student.intimidateur { border-left: 4px solid var(--intimidateur); }
 
-  /* ── Stats bar ── */
-  .stats-bar {
-    display: flex; gap: .75rem; margin-bottom: 2rem;
-    flex-wrap: wrap; background: hsla(0, 0%, 100%, 0.5);
-    padding: .5rem; border-radius: 30px; border: 1px solid var(--border);
-    width: fit-content;
+  .case-group-card { margin-bottom: 1.5rem; }
+  
+  .case-student-row {
+    display: grid; 
+    grid-template-columns: 95px 1.5fr 1fr 1fr auto;
+    gap: 1rem; padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
   }
-  .stat-chip {
-    display: flex; align-items: center; gap: .5rem;
-    padding: .4rem 1rem; border-radius: 20px;
-    font-size: .82rem; font-weight: 700;
-    background: var(--card); border: 1px solid var(--border);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
-  }
+  .case-student-row:last-child { border-bottom: none; }
 
-  /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 1.5rem; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--primary); color: #fff;
-    padding: .75rem 1.5rem; border-radius: 50px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    font-size: .9rem; font-weight: 600; transition: all .4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000;
-    pointer-events: none; text-align: center; min-width: 250px;
-  }
-  @media (pointer: coarse) {
-    .toast { padding: 1rem 2rem; font-size: 1rem; bottom: 3rem; }
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.error { background: var(--accent); }
-
-  /* ── Member Manager Modal ── */
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,.4); backdrop-filter: blur(4px);
-    display: none; align-items: center; justify-content: center;
-    z-index: 1000;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal-card {
-    background: var(--card); width: 100%; max-width: 400px;
-    border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,.15);
-    padding: 1.5rem; animation: modalUp .3s ease;
-    will-change: transform, opacity;
-  }
-  @keyframes modalUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-  .modal-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--primary); }
-  .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
-
-  .member-input-group { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
-  .member-input-group input {
-    flex: 1; padding: .6rem; border: 1.5px solid var(--border); border-radius: 8px;
-    font-family: inherit; font-size: .9rem;
-  }
-  .member-list-items {
-    max-height: 250px; overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    display: flex; flex-direction: column; gap: .5rem;
-    padding-right: .5rem;
-  }
-  .member-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: .6rem .85rem; background: #fafaf8;
-    border: 1px solid var(--border); border-radius: 8px;
-    font-size: .9rem; font-weight: 500;
-  }
-  .member-item .btn-remove {
-    background: none; border: none; color: var(--accent);
-    cursor: pointer; font-size: 1rem; padding: .2rem;
-  }
-
-  /* ── iPad Optimizations ── */
-  @media (pointer: coarse) {
-    .btn { padding: .8rem 1.6rem; min-height: 44px; }
-    .btn-sm, .btn-icon { min-width: 44px; min-height: 44px; padding: .6rem; }
-    .row-student select, .row-student input { padding: .7rem; font-size: 1rem; min-height: 44px; }
-    .btn-close { min-width: 44px; min-height: 44px; padding: .5rem; }
-    .stat-chip { padding: .6rem 1.25rem; font-size: .9rem; }
-  }
-
-  /* ── Print ── */
-  @media print {
-    body { background: #fff; padding: .5rem; }
-    .actions, .top-nav, .toast, .stats-bar, .modal-overlay { display: none !important; }
-    .case-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-    .summary-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-  }
-
-  /* ── Responsive: iPad ── */
-  @media (max-width: 960px) {
-    .row-student {
-      grid-template-columns: 85px 1fr 1fr;
-      gap: .75rem;
-      padding: 1rem;
-    }
-    /* Move Member select to second row on tablet */
-    .row-student > *:nth-child(3) { grid-column: span 1; }
-    /* Date and Time to second row */
-    .row-student > *:nth-child(4),
-    .row-student > *:nth-child(5) { grid-row: 2; grid-column: span 1; margin-top: .25rem; }
-    
-    .case-student-row {
-      grid-template-columns: 85px 1fr 1fr;
-      gap: .75rem;
-      padding: 1rem;
-    }
-    .case-student-row > *:nth-child(3) { grid-column: span 1; }
-    .case-student-row > *:nth-child(4),
-    .case-student-row > *:last-child { grid-row: 2; grid-column: span 1; margin-top: .25rem; }
-
-    .case-group-footer { justify-content: center; gap: 1rem; }
-  }
-
-  /* ── Responsive: Mobile ── */
-  @media (max-width: 640px) {
-    .row-student { grid-template-columns: 1fr 1fr; gap: .4rem; }
-    .case-student-row { grid-template-columns: 1fr; gap: .4rem; padding: .6rem 1rem; }
-    .case-group-header { flex-direction: column; gap: .5rem; align-items: flex-start; }
-    .case-group-footer { flex-direction: column; }
-    .case-group-footer .btn { width: 100%; justify-content: center; }
-    .actions { flex-direction: column; }
-    .stats-bar { flex-direction: column; }
+  .actions-fixed {
+    position: sticky; bottom: 2rem;
+    display: flex; justify-content: center; gap: 0.75rem;
+    margin-top: 3rem; padding: 1.5rem;
+    z-index: 100;
   }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container animate-reveal">
   <!-- Navigation -->
-  <nav class="top-nav">
-    <a class="nav-link" href="phare-gestion-harcelement.html">📋 Gestion des cas</a>
-    <a class="nav-link active" href="phare-reunion.html">📅 Réunion & Entretiens</a>
+  <nav class="top-nav glass">
+    <a class="nav-link" href="phare-gestion-harcelement.html">📋 Gestion</a>
+    <a class="nav-link active" href="phare-reunion.html">📅 Réunion</a>
     <a class="nav-link" href="#" id="logout-btn">🚪 Déconnexion</a>
   </nav>
 
@@ -502,71 +81,73 @@
   </script>
 
   <header>
-    <h1>pHARe — Attribution des entretiens</h1>
-    <p>Planifiez les entretiens pour les cas enregistrés</p>
+    <h1>Réunion pHARe</h1>
+    <p>Attribution et planification des entretiens</p>
+    <div id="api-status-container">
+        <span class="badge api-badge offline" id="api-status">⏳ Connexion…</span>
+    </div>
   </header>
 
-  <!-- Layout -->
   <div class="planning-layout">
-    
     <!-- À PLANIFIER -->
-    <section class="pending-section" id="pending-section">
+    <section id="pending-section">
       <div class="section-header">
-        <h2>📑 Entretiens a planifier</h2>
-        <div class="stats-bar" id="stats-bar"></div>
+        <h2 style="color: var(--primary);">📑 Entretiens à planifier</h2>
+        <div id="stats-bar" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
       </div>
       <div id="cases-container" class="cases-list"></div>
     </section>
 
     <!-- PLANIFIÉS -->
-    <section class="scheduled-section" id="scheduled-section" style="display:none">
+    <section id="scheduled-section" style="display:none">
       <div class="section-header">
-        <h2>📋 Planning des Entretiens</h2>
+        <h2 style="color: var(--primary);">📋 Planning des Entretiens</h2>
       </div>
-      <div id="scheduled-grid" class="scheduled-grid"></div>
+      <div id="scheduled-grid" class="history-list"></div>
     </section>
-
   </div>
 
   <!-- Boutons -->
-  <div class="actions" id="actions-bar" style="display:none">
-    <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer</button>
+  <div class="actions-fixed glass" id="actions-bar" style="display:none">
+    <button class="btn btn-primary" onclick="saveAll()">💾 Enregistrer tout</button>
     <button class="btn btn-ghost" onclick="openMemberManager()">👥 Équipe</button>
-    <button class="btn btn-ghost" onclick="exportJSON()">📄 Exporter JSON</button>
+    <button class="btn btn-ghost" onclick="exportJSON()">📄 Exporter</button>
     <button class="btn btn-ghost" onclick="printReport()">🖨️ Imprimer</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Modal Gestion des Membres -->
+<!-- Modal Membres -->
 <div class="modal-overlay" id="member-modal" onclick="if(event.target===this) closeMemberManager()">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h2>Membres pHARe</h2>
-      <button class="btn-close" onclick="closeMemberManager()">✕</button>
+  <div class="card" style="width: 100%; max-width: 450px; padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 style="color: var(--primary);">Équipe pHARe</h2>
+      <button class="btn" onclick="closeMemberManager()" style="background: none; font-size: 1.5rem;">✕</button>
     </div>
-    <div class="member-input-group">
-      <input type="text" id="new-member-name" placeholder="Nom du nouveau membre…">
-      <button class="btn btn-primary" onclick="addMemberToList()">Ajouter</button>
+    <div class="field-group">
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="new-member-name" placeholder="Nom du membre…">
+        <button class="btn btn-primary" onclick="addMemberToList()">Ajouter</button>
+      </div>
     </div>
-    <div id="member-list-items" class="member-list-items"></div>
+    <div id="member-list-items" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;"></div>
   </div>
 </div>
 
-<!-- Generic Custom Modal -->
+<!-- Custom Modal -->
 <div class="modal-overlay" id="custom-modal">
-  <div class="modal-card" style="max-width: 400px;">
-    <div class="modal-header">
-      <h2 id="custom-modal-title">Action</h2>
-      <button class="btn-close" onclick="closeCustomModal()">✕</button>
+  <div class="card" style="width: 100%; max-width: 400px; padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h2 id="custom-modal-title" style="color: var(--primary);">Action</h2>
+      <button class="btn" onclick="closeCustomModal()" style="background: none; font-size: 1.5rem;">✕</button>
     </div>
-    <div class="member-input-group" style="flex-direction: column; gap: 1rem;">
-      <p id="custom-modal-msg" style="margin: 0; color: var(--text-color); font-size: 1.1rem; line-height: 1.4;"></p>
-      <input type="text" id="custom-modal-input" placeholder="Nom de l'élève" style="display: none; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px;">
-      <input type="text" id="custom-modal-input-2" placeholder="Classe (ex: 6ème A)" style="display: none; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px;">
-      <select id="custom-modal-select" style="display: none; font-family: inherit; width: 100%; border: 1px solid var(--border-color); padding: 0.8rem; border-radius: 8px; font-size: 0.95rem;"></select>
-      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; width: 100%; margin-top: 0.5rem;">
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <p id="custom-modal-msg"></p>
+      <input type="text" id="custom-modal-input" placeholder="Nom de l'élève" style="display: none;">
+      <input type="text" id="custom-modal-input-2" placeholder="Classe (ex: 6ème A)" style="display: none;">
+      <select id="custom-modal-select" style="display: none;"></select>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
         <button class="btn btn-ghost" onclick="closeCustomModal()">Annuler</button>
         <button class="btn btn-primary" id="custom-modal-confirm">Confirmer</button>
       </div>
@@ -574,33 +155,25 @@
   </div>
 </div>
 
-<script>
-  // ══════════════════════════════════════════════════════════
-  //  CONFIGURATION — shared localStorage keys
-  // ══════════════════════════════════════════════════════════
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script type="module">
+  import { getScheduledEntretiens, getPendingEntretiens, scheduleEntretien, cancelEntretien, saveReunionLocal, loadReunionLocal } from './js/entretien-api.js';
+  import { fetchApi } from './js/api.js';
 
-  const CASES_KEY    = 'phare_cases';      // Read from Gestion page
-  const REUNIONS_KEY = 'phare_reunions';   // Written by this page
-  const MEMBERS_KEY  = 'phare_members';    // Shared with Gestion page
+  const CASES_KEY    = 'phare_cases';
+  const MEMBERS_KEY  = 'phare_members';
 
-  let MEMBRES = [
-    'Antoine Kopp',
-    'Aline Soulhat',
-    'Alex Sarno',
-    'Ana Maria Sezerino',
-    'Céline Berger',
-    'Daiana Santos',
-    'Élodie Mazet',
-    'Giselle Paz',
-    'Jonathan Wasato',
-    'Maria Beatriz Guimarães',
-    'Rafaela Lomba',
-    'Vanessa Coelho',
-    'Vanessa Laga',
-    'Whilian Xavier'
+  let apiOnline = false;
+  const HOSTNAME = window.location.hostname || 'localhost';
+  const API_URL = `http://${HOSTNAME}:8080/api/cas`;
+
+  let MEMBRES = [];
+  const DEFAULT_MEMBRES = [
+    'Antoine Kopp', 'Aline Soulhat', 'Alex Sarno', 'Ana Maria Sezerino', 'Céline Berger',
+    'Daiana Santos', 'Élodie Mazet', 'Giselle Paz', 'Jonathan Wasato', 'Maria Beatriz Guimarães',
+    'Rafaela Lomba', 'Vanessa Coelho', 'Vanessa Laga', 'Whilian Xavier'
   ];
 
-  // Type display helpers (handles both API MAJUSCULE and local minuscule)
   const TYPE_DISPLAY = {
     VICTIME: { icon: '🔴', label: 'Victime', class: 'victime' },
     TEMOIN:  { icon: '🟡', label: 'Témoin',  class: 'temoin' },
@@ -611,51 +184,44 @@
   };
 
   let allCases = [];
-  let reunionData = {};  // { caseId: { entretiens: { eleveIndex: { membre, date, heure } } } }
+  let reunionData = {};
 
-  // ══════════════════════════════════════════════════════════
-  //  INITIALISATION
-  // ══════════════════════════════════════════════════════════
-
-  (function init() {
+  (async function init() {
     loadMembers();
-    loadCases();
-    loadReunions();
+    try {
+      const data = await fetchApi(API_URL);
+      apiOnline = true;
+      allCases = data;
+      localStorage.setItem(CASES_KEY, JSON.stringify(data));
+    } catch (err) {
+      console.warn('API Offline — using localStorage');
+      apiOnline = false;
+      allCases = JSON.parse(localStorage.getItem(CASES_KEY) || '[]');
+    }
+
+    reunionData = loadReunionLocal();
+    updateApiBadge();
     renderAll();
 
-    // Check for ?cas=ID query parameter to highlight a specific case
     const params = new URLSearchParams(window.location.search);
     const targetCaseId = params.get('cas');
     if (targetCaseId) {
       setTimeout(() => {
         const el = document.getElementById(`case-${targetCaseId}`);
         if (el) {
-          el.classList.add('highlight');
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          gsap.from(el, { backgroundColor: 'var(--primary-light)', duration: 1 });
         }
-      }, 400);
+      }, 500);
     }
   })();
 
-  // ══════════════════════════════════════════════════════════
-  //  DATA LOADING
-  // ══════════════════════════════════════════════════════════
-
-  function loadCases() {
-    allCases = JSON.parse(localStorage.getItem(CASES_KEY) || '[]');
+  function updateApiBadge() {
+    const badge = document.getElementById('api-status');
+    if (!badge) return;
+    badge.textContent = apiOnline ? '🟢 API connectée' : '🔴 Mode hors-ligne';
+    badge.className = 'badge api-badge ' + (apiOnline ? 'online' : 'offline');
   }
-
-  function loadReunions() {
-    reunionData = JSON.parse(localStorage.getItem(REUNIONS_KEY) || '{}');
-  }
-
-  function saveReunions() {
-    localStorage.setItem(REUNIONS_KEY, JSON.stringify(reunionData));
-  }
-
-  // ══════════════════════════════════════════════════════════
-  //  RENDERING
-  // ══════════════════════════════════════════════════════════
 
   function renderAll() {
     renderStats();
@@ -670,18 +236,16 @@
     const totalStudents = allCases.reduce((s, c) => s + (c.eleves?.length || 0), 0);
     let scheduled = 0;
     allCases.forEach(c => {
-      const rd = reunionData[c.id];
-      if (!rd?.entretiens) return;
+      const rd = reunionData[c.id]?.entretiens || {};
       (c.eleves || []).forEach((_, i) => {
-        if (rd.entretiens[i]?.date && rd.entretiens[i]?.membre) scheduled++;
+        if (rd[i]?.date && rd[i]?.membre) scheduled++;
       });
     });
 
     bar.innerHTML = `
-      <div class="stat-chip">📂 ${allCases.length} cas enregistré${allCases.length > 1 ? 's' : ''}</div>
-      <div class="stat-chip">👤 ${totalStudents} élève${totalStudents > 1 ? 's' : ''}</div>
-      <div class="stat-chip"><span class="status-dot scheduled"></span> ${scheduled} entretien${scheduled > 1 ? 's' : ''} planifié${scheduled > 1 ? 's' : ''}</div>
-      <div class="stat-chip"><span class="status-dot pending"></span> ${totalStudents - scheduled} en attente</div>
+      <span class="badge">📂 ${allCases.length} cas</span>
+      <span class="badge">👤 ${totalStudents} élèves</span>
+      <span class="badge" style="background: var(--primary); color: #fff;">✅ ${scheduled} planifiés</span>
     `;
   }
 
@@ -690,567 +254,197 @@
     const actionsBar = document.getElementById('actions-bar');
     const scheduledSection = document.getElementById('scheduled-section');
 
-    // Filter cases to show only those with UNPLANNED students
     const casesToRender = allCases.filter(cas => {
-      const rd = reunionData[cas.id] || { entretiens: {} };
-      return (cas.eleves || []).some((_, i) => {
-        const ent = rd.entretiens[i];
-        return !ent || !ent.membre || !ent.date;
-      });
+      const rd = reunionData[cas.id]?.entretiens || {};
+      return (cas.eleves || []).some((_, i) => !rd[i]?.membre || !rd[i]?.date);
     });
 
     if (allCases.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <span class="emoji">📋</span>
-          <strong>Aucun cas enregistré</strong><br>
-          Commencez par créer des cas dans la page de gestion.
-          <br>
-          <a href="phare-gestion-harcelement.html">＋ Créer un cas</a>
-        </div>
-      `;
+      container.innerHTML = `<div class="card" style="text-align: center; padding: 4rem;">
+        <h2 style="color: var(--text-muted);">Aucun cas enregistré</h2>
+        <a href="phare-gestion-harcelement.html" class="btn btn-primary" style="margin-top: 1rem;">＋ Créer un cas</a>
+      </div>`;
       actionsBar.style.display = 'none';
-      scheduledSection.style.display = 'none';
       return;
     }
 
     actionsBar.style.display = 'flex';
     
     if (casesToRender.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state" style="border-style: solid; background: var(--primary-light);">
-          <span class="emoji">✅</span>
-          <strong>Tous les entretiens sont planifiés</strong><br>
-          Consultez le planning ci-dessous.
-        </div>
-      `;
+      container.innerHTML = `<div class="card" style="text-align: center; background: var(--primary-light); border-color: var(--primary);">
+        <h3 style="color: var(--primary);">Tous les entretiens sont planifiés !</h3>
+      </div>`;
     } else {
-      container.innerHTML = casesToRender.map((c, index) => {
-        const caseId = c.id;
-        const rd = reunionData[caseId] || { entretiens: {} };
-        const dateStr = formatDate(c.date);
-
-        // Only show students who are NOT scheduled
+      container.innerHTML = casesToRender.map(c => {
+        const rd = reunionData[c.id]?.entretiens || {};
         const pendingStudents = (c.eleves || []).map((e, i) => ({ e, i }))
-          .filter(pair => {
-            const ent = rd.entretiens[pair.i];
-            return !ent || !ent.membre || !ent.date;
-          });
-
-        const studentRows = pendingStudents.map(pair => {
-          const { e, i } = pair;
-          const td = TYPE_DISPLAY[e.type] || { icon: '❓', label: e.type, class: '' };
-          const ent = rd.entretiens[i] || {};
-
-          const membreOpts = ['', ...MEMBRES]
-            .map(m => `<option value="${m}" ${ent.membre === m ? 'selected' : ''}>${m || 'Choisir…'}</option>`)
-            .join('');
-
-          return `
-            <div class="row-student ${td.class}">
-              <div>
-                <span class="student-type">${td.icon} ${td.label}</span>
-              </div>
-              <div class="student-name" style="display: flex; flex-direction: column; justify-content: center;">
-                <div><span class="status-dot pending"></span>${e.nom} <span style="font-size: 0.85em; opacity: 0.8;">(${e.classe || 'N/A'})</span></div>
-                ${e.lie_a ? `<div style="font-size: .7em; opacity: 0.65; margin-top: 2px;">Lié à: ${e.lie_a}</div>` : ''}
-              </div>
-              <select class="f-membre" data-case="${caseId}" data-idx="${i}" onchange="onFieldChange(this)">
-                ${membreOpts}
-              </select>
-              <input type="date" class="f-date" data-case="${caseId}" data-idx="${i}" value="${ent.date || ''}" onchange="onFieldChange(this)">
-              <input type="time" class="f-heure" data-case="${caseId}" data-idx="${i}" value="${ent.heure || ''}" onchange="onFieldChange(this)">
-            </div>
-          `;
-        }).join('');
+          .filter(p => !rd[p.i]?.membre || !rd[p.i]?.date);
 
         return `
-          <div class="case-card" id="case-${caseId}" style="--delay: ${index * 0.1}s">
-            <div class="case-header">
-              <span class="case-title">📂 Cas — ${dateStr} ${c.heure || ''}</span>
-              <div class="case-meta">
-                ${(c.eleves || []).map(e => {
-                  const td = TYPE_DISPLAY[e.type] || { label: e.type, class: '' };
-                  return `<span class="badge badge-${td.class}">${td.label}</span>`;
-                }).join('')}
-              </div>
+          <div class="card case-card" id="case-${c.id}">
+            <div style="padding: 1rem 1.5rem; background: var(--bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+              <span style="font-weight: 700; color: var(--primary);">📂 Dossier du ${formatDate(c.date)}</span>
+              <span class="badge">${pendingStudents.length} en attente</span>
             </div>
-            <div class="case-body">
-              ${studentRows}
-            </div>
+            ${pendingStudents.map(p => {
+              const td = TYPE_DISPLAY[p.e.type] || { icon: '❓', label: p.e.type, class: '' };
+              const ent = rd[p.i] || {};
+              return `
+                <div class="row-student ${td.class}">
+                  <span class="badge" style="background: currentColor; color: #fff; width: fit-content;">${td.label}</span>
+                  <div style="font-weight: 700;">${p.e.nom} <span style="font-weight: 400; opacity: 0.7;">(${p.e.classe || '?'})</span></div>
+                  <select onchange="window.onFieldChange(this)" data-case="${c.id}" data-idx="${p.i}" class="f-membre">
+                    <option value="">Intervenant...</option>
+                    ${MEMBRES.map(m => `<option value="${m}" ${ent.membre === m ? 'selected' : ''}>${m}</option>`).join('')}
+                  </select>
+                  <input type="date" value="${ent.date || ''}" onchange="window.onFieldChange(this)" data-case="${c.id}" data-idx="${p.i}" class="f-date">
+                  <input type="time" value="${ent.heure || ''}" onchange="window.onFieldChange(this)" data-case="${c.id}" data-idx="${p.i}" class="f-heure">
+                </div>
+              `;
+            }).join('')}
           </div>
         `;
       }).join('');
     }
-    
-    renderScheduled();
   }
 
-  function renderScheduled() {
-    const grid = document.getElementById('scheduled-grid');
+  function updateSummary() {
+    const container = document.getElementById('scheduled-grid');
     const section = document.getElementById('scheduled-section');
     
-    // Type priority for sorting: victime first, then temoin, then intimidateur
-    const TYPE_PRIORITY = { victime: 0, VICTIME: 0, temoin: 1, TEMOIN: 1, intimidateur: 2, INTIMIDATEUR: 2 };
-    
-    // Build case groups: include ALL cases that have at least 1 scheduled student
-    const caseGroups = [];
-
-    allCases.forEach(cas => {
-      const rd = reunionData[cas.id] || { entretiens: {} };
-      const eleves = cas.eleves || [];
-      
-      // Check if at least ONE student is scheduled
-      const hasScheduled = eleves.some((_, i) => {
-        const ent = rd.entretiens[i];
-        return ent && ent.membre && ent.date;
-      });
-      
-      if (!hasScheduled) return;
-      
-      // Build full student list for this case (scheduled + unscheduled)
-      const students = eleves.map((e, i) => ({
-        idx: i,
-        student: e,
-        entretien: rd.entretiens[i] || {},
-        isScheduled: !!(rd.entretiens[i]?.membre && rd.entretiens[i]?.date)
-      }));
-      
-      // Sort: victime first, then temoin, then intimidateur
-      students.sort((a, b) => {
-        const pa = TYPE_PRIORITY[a.student.type] ?? 9;
-        const pb = TYPE_PRIORITY[b.student.type] ?? 9;
-        return pa - pb;
-      });
-
-      // Determine earliest date for header
-      const scheduledOnes = students.filter(s => s.isScheduled);
-      scheduledOnes.sort((a, b) => (a.entretien.date + (a.entretien.heure || '')).localeCompare(b.entretien.date + (b.entretien.heure || '')));
-      const earliestDate = scheduledOnes[0] ? scheduledOnes[0].entretien.date : cas.date;
-
-      caseGroups.push({ cas, students, earliestDate, scheduledCount: scheduledOnes.length, totalCount: students.length });
+    const casesWithScheduled = allCases.filter(cas => {
+        const rd = reunionData[cas.id]?.entretiens || {};
+        return Object.values(rd).some(e => e.membre && e.date);
     });
 
-    if (caseGroups.length === 0) {
+    if (casesWithScheduled.length === 0) {
       section.style.display = 'none';
       return;
     }
 
     section.style.display = 'block';
-    caseGroups.sort((a, b) => (a.earliestDate || '').localeCompare(b.earliestDate || ''));
-
-    grid.innerHTML = caseGroups.map((group, gIdx) => {
-      const dateStr = formatDate(group.earliestDate || group.cas.date);
-      
-      const rowsHtml = group.students.map(s => {
-        const td = TYPE_DISPLAY[s.student.type] || { icon: '❓', label: s.student.type };
-        const typeLower = (s.student.type || '').toLowerCase();
-        const csbClass = `csb-${typeLower}`;
-        
-        if (s.isScheduled) {
-          // ── Scheduled student: read-only display with edit/unschedule ──
-          return `
-            <div class="case-student-row ${typeLower}">
-              <div><span class="case-student-badge ${csbClass}">${td.icon} ${td.label}</span></div>
-              <div style="display:flex; flex-direction:column; justify-content:center;">
-                <div style="font-weight:700;">${s.student.nom} <span style="font-size: 0.85em; opacity: 0.7;">(${s.student.classe || 'N/A'})</span></div>
-                ${s.student.lie_a ? `<div style="font-size: .7em; opacity: 0.6; margin-top: 2px;">Lié à: ${s.student.lie_a}</div>` : ''}
-              </div>
-              <div style="font-size: 0.85rem; color: var(--text-light);">📅 ${formatDate(s.entretien.date)} · 🕒 ${s.entretien.heure || '--:--'}</div>
-              <div style="font-size: 0.85rem; color: var(--text-light);">👤 ${s.entretien.membre}</div>
-              <div style="display:flex; gap:0.35rem; justify-content:flex-end;">
-                <button class="btn-icon" title="Modifier l'entretien" data-action="edit" data-case="${group.cas.id}" data-idx="${s.idx}">✏️</button>
-                <button class="btn-icon delete" title="Retirer du planning" data-action="unschedule" data-case="${group.cas.id}" data-idx="${s.idx}">↩️</button>
-              </div>
-            </div>
-          `;
-        } else {
-          // ── Unscheduled student: inline editable fields ──
-          const membreOpts = ['', ...MEMBRES]
-            .map(m => `<option value="${m}" ${(s.entretien.membre || '') === m ? 'selected' : ''}>${m || 'Choisir…'}</option>`)
-            .join('');
-          return `
-            <div class="case-student-row ${typeLower}" style="background: hsla(45, 80%, 50%, 0.03);">
-              <div><span class="case-student-badge ${csbClass}">${td.icon} ${td.label}</span></div>
-              <div style="display:flex; flex-direction:column; justify-content:center;">
-                <div style="font-weight:700;">${s.student.nom} <span style="font-size: 0.85em; opacity: 0.7;">(${s.student.classe || 'N/A'})</span></div>
-                ${s.student.lie_a ? `<div style="font-size: .7em; opacity: 0.6; margin-top: 2px;">Lié à: ${s.student.lie_a}</div>` : ''}
-              </div>
-              <div><select class="f-membre" data-case="${group.cas.id}" data-idx="${s.idx}" onchange="onGroupFieldChange(this)" style="padding:.4rem .5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; font-family:inherit; background:#fafaf8;">${membreOpts}</select></div>
-              <div style="display:flex; gap:.3rem;">
-                <input type="date" class="f-date" data-case="${group.cas.id}" data-idx="${s.idx}" value="${s.entretien.date || ''}" onchange="onGroupFieldChange(this)" style="padding:.4rem .5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; font-family:inherit; background:#fafaf8;">
-                <input type="time" class="f-heure" data-case="${group.cas.id}" data-idx="${s.idx}" value="${s.entretien.heure || ''}" onchange="onGroupFieldChange(this)" style="padding:.4rem .5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; font-family:inherit; background:#fafaf8;">
-              </div>
-              <div style="text-align:right;"><span style="font-size:.7rem; font-weight:700; color:var(--temoin); text-transform:uppercase; letter-spacing:.5px;">⏳ En attente</span></div>
-            </div>
-          `;
-        }
-      }).join('');
+    container.innerHTML = casesWithScheduled.map(c => {
+      const rd = reunionData[c.id]?.entretiens || {};
+      const scheduledOnes = (c.eleves || []).map((e, i) => ({ e, i }))
+        .filter(p => rd[p.i]?.membre && rd[p.i]?.date);
 
       return `
-        <div class="case-group-card" style="animation-delay: ${gIdx * 0.06}s">
-          <div class="case-group-header">
-            <h3>📂 Cas du ${dateStr}</h3>
-            <div style="display:flex; gap:.6rem; align-items:center; font-size:.82rem;">
-              <span style="color:var(--primary); font-weight:700;">✅ ${group.scheduledCount} planifié${group.scheduledCount > 1 ? 's' : ''}</span>
-              ${group.totalCount - group.scheduledCount > 0 ? `<span style="color:var(--temoin); font-weight:700;">⏳ ${group.totalCount - group.scheduledCount} en attente</span>` : ''}
-            </div>
+        <div class="card case-group-card">
+          <div style="padding: 1rem 1.5rem; background: var(--primary-light); color: var(--primary); font-weight: 700;">
+            📅 Planning — Incident du ${formatDate(c.date)}
           </div>
-          <div class="case-group-body">
-            ${rowsHtml}
-          </div>
-          <div class="case-group-footer">
-            <button class="btn btn-ghost" title="Ajouter Témoin" data-action="add-temoin" data-case="${group.cas.id}">➕🟡 Témoin</button>
-            <button class="btn btn-ghost" title="Ajouter Intimidateur" data-action="add-intimidateur" data-case="${group.cas.id}">➕🟣 Intimidateur</button>
-            <button class="btn btn-outline delete" style="border-color: var(--accent); color: var(--accent);" title="Supprimer le cas complet" data-action="delete-case" data-case="${group.cas.id}">🗑️ Supprimer le Cas</button>
-          </div>
+          ${scheduledOnes.map(p => {
+            const ent = rd[p.i];
+            const td = TYPE_DISPLAY[p.e.type] || { icon: '❓', label: p.e.type, class: '' };
+            return `
+              <div class="case-student-row ${td.class}">
+                <span class="badge">${td.label}</span>
+                <div style="font-weight: 700;">${p.e.nom}</div>
+                <div style="color: var(--primary); font-weight: 600;">👤 ${ent.membre}</div>
+                <div>🕒 ${formatDate(ent.date)} à ${ent.heure || '?'}</div>
+                <button class="btn" style="color: var(--accent);" onclick="window.unplan(${c.id}, ${p.i})">✕</button>
+              </div>
+            `;
+          }).join('')}
         </div>
       `;
     }).join('');
   }
 
-  // Handle inline field changes inside grouped cards
-  function onGroupFieldChange(el) {
+  window.onFieldChange = function(el) {
     const caseId = el.dataset.case;
-    const idx = el.dataset.idx;
-    const row = el.closest('.case-student-row');
-
+    const idx = parseInt(el.dataset.idx);
+    const field = el.classList.contains('f-membre') ? 'membre' : 
+                  el.classList.contains('f-date') ? 'date' : 'heure';
+    
     if (!reunionData[caseId]) reunionData[caseId] = { entretiens: {} };
     if (!reunionData[caseId].entretiens[idx]) reunionData[caseId].entretiens[idx] = {};
-
+    
+    reunionData[caseId].entretiens[idx][field] = el.value;
+    saveReunionLocal(reunionData);
+    
+    // Auto-refresh when fully scheduled
     const ent = reunionData[caseId].entretiens[idx];
-    const membreEl = row.querySelector('.f-membre');
-    const dateEl = row.querySelector('.f-date');
-    const heureEl = row.querySelector('.f-heure');
-
-    if (membreEl) ent.membre = membreEl.value;
-    if (dateEl) ent.date = dateEl.value;
-    if (heureEl) ent.heure = heureEl.value;
-
     if (ent.membre && ent.date) {
-      saveReunions();
-      renderAll();
-      toast("Entretien planifié !");
-    } else {
-      saveReunions();
-      renderStats();
+        gsap.to(el.closest('.row-student'), { x: 50, opacity: 0, duration: 0.5, onComplete: renderAll });
     }
-  }
+  };
 
-  // Delegated Event Listener for Dossier Actions
-  document.addEventListener('click', function(e) {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    
-    const action = btn.getAttribute('data-action');
-    const caseId = btn.getAttribute('data-case');
-    const idx = btn.getAttribute('data-idx');
-
-    if (action === 'edit') {
-      window.editInterview(caseId, idx);
-    } else if (action === 'unschedule') {
-      window.unscheduleInterview(caseId, idx);
-    } else if (action === 'delete-case') {
-      window.deleteCaseAction(caseId);
-    } else if (action === 'add-temoin') {
-      window.quickAdd(caseId, 'temoin');
-    } else if (action === 'add-intimidateur') {
-      window.quickAdd(caseId, 'intimidateur');
-    }
-  });
-
-  // --- Custom Modals ---
-  function closeCustomModal() {
-    document.getElementById('custom-modal').classList.remove('active');
-  }
-
-  // Logic to unschedule an individual student and send them back to pending
-  window.unscheduleInterview = function(caseId, idx) {
-    if(!confirm('Retirer cet élève du planning ? Il retournera dans la liste d\'attente.')) return;
-    if(reunionData[caseId] && reunionData[caseId].entretiens) {
-      if(reunionData[caseId].entretiens[idx]) {
-        delete reunionData[caseId].entretiens[idx].date;
-        delete reunionData[caseId].entretiens[idx].heure;
-        delete reunionData[caseId].entretiens[idx].membre;
-        localStorage.setItem(REUNIONS_KEY, JSON.stringify(reunionData));
+  window.unplan = function(caseId, idx) {
+    if (confirm('Désannuler cet entretien ?')) {
+        delete reunionData[caseId].entretiens[idx];
+        saveReunionLocal(reunionData);
         renderAll();
-        toast("Entretien retiré du planning.");
-      }
     }
   };
 
-
-  function openCustomModal(title, msg, showInput, selectOptions, onConfirm) {
-    document.getElementById('custom-modal-title').textContent = title;
-    document.getElementById('custom-modal-msg').textContent = msg;
-    
-    const inputEl = document.getElementById('custom-modal-input');
-    const inputEl2= document.getElementById('custom-modal-input-2');
-
-    if (showInput) {
-      inputEl.style.display = 'block';
-      inputEl.value = '';
-      inputEl2.style.display = 'block';
-      inputEl2.value = '';
-      inputEl.focus();
-    } else {
-      inputEl.style.display = 'none';
-      inputEl2.style.display = 'none';
-    }
-    
-    const selectEl = document.getElementById('custom-modal-select');
-    if (selectOptions && selectOptions.length > 0) {
-      selectEl.style.display = 'block';
-      selectEl.innerHTML = '<option value="" disabled selected>Sélectionner la victime liée…</option>' + 
-                           selectOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-      if (selectOptions.length === 1) selectEl.value = selectOptions[0]; // Auto-select if only 1
-    } else {
-      selectEl.style.display = 'none';
-      selectEl.innerHTML = '';
-    }
-    
-    const btnConfirm = document.getElementById('custom-modal-confirm');
-    // Clear old listeners
-    const newBtn = btnConfirm.cloneNode(true);
-    btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
-
-    newBtn.addEventListener('click', () => {
-      onConfirm(
-        showInput ? inputEl.value.trim() : true,
-        (selectOptions && selectOptions.length > 0) ? selectEl.value : null,
-        showInput ? inputEl2.value.trim() : null
-      );
-      closeCustomModal();
-    });
-
-    document.getElementById('custom-modal').classList.add('active');
-  }
-
-  // --- Functions ---
-  window.editInterview = function(caseId, idx) {
-    openCustomModal("Modifier l'entretien", "Repasser cet entretien en 'À Planifier' ?", false, null, (confirmed) => {
-      if(confirmed) window.unscheduleInterview(caseId, idx);
-    });
+  window.saveAll = function() {
+    showToast('✅ Modifications enregistrées localement');
+    renderAll();
   };
-
-  // unscheduleInterview is defined above (lines 900-913) with confirm dialog
-
-  window.deleteCaseAction = function(caseId) {
-    openCustomModal("Supprimer le cas", "⚠️ ATTENTION : Voulez-vous vraiment supprimer CE CAS ENTIER (incluant la victime et tous les intervenants liés) ?", false, null, (alertConfirmed) => {
-      if(alertConfirmed) {
-        // Enlève le cas de la liste principale
-        allCases = allCases.filter(c => String(c.id) !== String(caseId));
-        localStorage.setItem(CASES_KEY, JSON.stringify(allCases));
-        
-        // Nettoie aussi dans reunionData
-        if(reunionData[caseId]) {
-          delete reunionData[caseId];
-          saveReunions();
-        }
-        
-        renderAll();
-        toast("Le cas a été supprimé définitivement.");
-      }
-    });
-  };
-
-  window.quickAdd = function(caseId, type) {
-    const roleName = type === 'temoin' ? 'Témoin' : 'Intimidateur';
-    const cas = allCases.find(c => String(c.id) === String(caseId));
-    if (!cas) return;
-
-    const victims = (cas.eleves || []).filter(e => e.type === 'victime' || e.type === 'VICTIME').map(e => e.nom);
-    if (victims.length === 0) {
-      toast("Impossible: Aucune victime n'est présente dans ce cas.", true);
-      return;
-    }
-
-    openCustomModal(`Ajouter un ${roleName}`, `Entrez le nom, la classe de l'élève et la victime à laquelle il est lié(e) :`, true, victims, (name, linkedVictim, classe) => {
-      if (!name) return;
-      if (!classe || classe === '') { toast("Veuillez indiquer la classe.", true); return; }
-      if (!linkedVictim) { toast("Veuillez sélectionner la victime ciblée.", true); return; }
-      
-      if (!cas.eleves) cas.eleves = [];
-      cas.eleves.push({ nom: name, classe: classe, type: type, lie_a: linkedVictim });
-      localStorage.setItem(CASES_KEY, JSON.stringify(allCases));
-      renderAll();
-      toast(`${name} ajouté au cas (lié à ${linkedVictim}).`);
-    });
-  };
-
-  function onFieldChange(el) {
-    const caseId = el.dataset.case;
-    const idx = el.dataset.idx;
-    const row = el.closest('.row-student');
-
-    if (!reunionData[caseId]) reunionData[caseId] = { entretiens: {} };
-    if (!reunionData[caseId].entretiens[idx]) reunionData[caseId].entretiens[idx] = {};
-
-    const ent = reunionData[caseId].entretiens[idx];
-    ent.membre = row.querySelector('.f-membre').value;
-    ent.date   = row.querySelector('.f-date').value;
-    ent.heure  = row.querySelector('.f-heure').value;
-
-    // Check if fully scheduled
-    if (ent.membre && ent.date) {
-      saveReunions();
-      renderAll(); // Will trigger move to Scheduled
-      toast("Entretien planifié !");
-    } else {
-      saveReunions();
-      renderStats();
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  //  SAVE ALL
-  // ══════════════════════════════════════════════════════════
-
-  function saveAll() {
-    // Data is already auto-saved, but let's confirm
-    saveReunions();
-    toast('Entretiens enregistrés avec succès !');
-  }
-
-  // ══════════════════════════════════════════════════════════
-  //  SUMMARY — by member
-  // ══════════════════════════════════════════════════════════
-
-  function updateSummary() {
-    // Replaced by renderScheduled and filtered renderCases
-  }
-
-  // ══════════════════════════════════════════════════════════
-  //  EXPORT JSON
-  // ══════════════════════════════════════════════════════════
-
-  function exportJSON() {
-    // Merge case data with reunion data for export
-    const exportData = allCases.map(c => {
-      const rd = reunionData[c.id] || { entretiens: {} };
-      return {
-        ...c,
-        entretiens: (c.eleves || []).map((e, i) => ({
-          ...e,
-          ...(rd.entretiens[i] || {})
-        }))
-      };
-    });
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `phare_reunions_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast('Export JSON téléchargé.');
-  }
-
-  function printReport() { window.print(); }
-
-  // ══════════════════════════════════════════════════════════
-  //  TOAST
-  // ══════════════════════════════════════════════════════════
-
-  function toast(msg, err = false) {
-    const el = document.getElementById('toast');
-    if (el) {
-      el.textContent = msg;
-      el.className = 'toast show' + (err ? ' error' : '');
-      setTimeout(() => el.className = 'toast', 2500);
-    }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  //  MEMBER MANAGEMENT — Shared with Gestion page
-  // ══════════════════════════════════════════════════════════
 
   function loadMembers() {
     const saved = localStorage.getItem(MEMBERS_KEY);
-    if (saved) {
-      try { MEMBRES = JSON.parse(saved); } catch (e) {}
-    }
+    MEMBRES = saved ? JSON.parse(saved) : DEFAULT_MEMBRES;
   }
 
-  function saveMembers() {
-    localStorage.setItem(MEMBERS_KEY, JSON.stringify(MEMBRES));
-    updateAllMemberSelects();
-    updateSummary();
-  }
-
-  function openMemberManager() {
-    document.getElementById('member-modal').classList.add('active');
-    renderMemberManager();
-  }
-
-  function closeMemberManager() {
-    document.getElementById('member-modal').classList.remove('active');
-  }
-
-  function renderMemberManager() {
+  window.openMemberManager = function() {
     const container = document.getElementById('member-list-items');
-    if (MEMBRES.length === 0) {
-      container.innerHTML = '<p style="text-align:center; font-size:.8rem; color:var(--text-light); padding:1rem;">Aucun membre enregistré.</p>';
-      return;
-    }
-    container.innerHTML = MEMBRES.map((m, i) => `
-      <div class="member-item">
+    container.innerHTML = MEMBRES.map(m => `
+      <div class="card" style="padding: 0.75rem 1rem; flex-direction: row; justify-content: space-between; align-items: center;">
         <span>${m}</span>
-        <button class="btn-remove" onclick="removeMemberFromList(${i})" title="Supprimer">✕</button>
+        <button onclick="window.removeMember('${m}')" style="color: var(--accent); background: none; border: none; cursor: pointer;">✕</button>
       </div>
     `).join('');
-  }
+    document.getElementById('member-modal').classList.add('active');
+  };
 
-  function addMemberToList() {
+  window.closeMemberManager = () => document.getElementById('member-modal').classList.remove('active');
+
+  window.addMemberToList = function() {
     const input = document.getElementById('new-member-name');
     const name = input.value.trim();
-    if (!name) return;
-    if (MEMBRES.includes(name)) { toast("Membre déjà présent", true); return; }
-    MEMBRES.push(name);
-    MEMBRES.sort();
-    input.value = '';
-    saveMembers();
-    renderMemberManager();
-    toast("Membre ajouté");
-  }
-
-  function removeMemberFromList(index) {
-    if (!confirm(`Supprimer ${MEMBRES[index]} de la liste ?`)) return;
-    MEMBRES.splice(index, 1);
-    saveMembers();
-    renderMemberManager();
-    toast("Membre retiré");
-  }
-
-  function updateAllMemberSelects() {
-    const selects = document.querySelectorAll('.f-membre');
-    selects.forEach(select => {
-      const currentVal = select.value;
-      const opts = ['', ...MEMBRES]
-        .map(m => `<option value="${m}" ${currentVal === m ? 'selected' : ''}>${m || 'Choisir…'}</option>`)
-        .join('');
-      select.innerHTML = opts;
-    });
-  }
-
-  // ══════════════════════════════════════════════════════════
-  //  UTILITIES
-  // ══════════════════════════════════════════════════════════
-
-  function formatDate(str) {
-    if (!str || str === '—') return '—';
-    const [y, m, d] = str.split('-');
-    return `${d}/${m}/${y}`;
-  }
-</script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('SW Registered', reg))
-          .catch(err => console.error('SW Registration Failed', err));
-      });
+    if (name && !MEMBRES.includes(name)) {
+      MEMBRES.push(name);
+      MEMBRES.sort();
+      localStorage.setItem(MEMBERS_KEY, JSON.stringify(MEMBRES));
+      input.value = '';
+      openMemberManager();
+      renderCases();
     }
-  </script>
+  };
+
+  window.removeMember = function(name) {
+    MEMBRES = MEMBRES.filter(m => m !== name);
+    localStorage.setItem(MEMBERS_KEY, JSON.stringify(MEMBRES));
+    openMemberManager();
+    renderCases();
+  };
+
+  function formatDate(d) {
+    if (!d) return '?';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (isError ? 'error ' : '') + 'show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  window.exportJSON = () => {
+    const blob = new Blob([JSON.stringify({ cases: allCases, planning: reunionData }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `phare-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+  };
+
+  window.printReport = () => window.print();
+
+</script>
 </body>
 </html>

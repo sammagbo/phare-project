@@ -13,420 +13,65 @@
   import { checkAuth } from './js/auth.js';
   checkAuth();
 </script>
+<link rel="stylesheet" href="css/index.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
-
-  /* ── Navigation ── */
-  .top-nav {
-    display: flex; justify-content: center; gap: .75rem;
-    margin-bottom: 2.5rem; padding: .65rem;
-    box-shadow: var(--shadow); border: 1.5px solid var(--border);
-    will-change: transform, opacity;
-  }
-  @media (hover: hover) {
-    .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateY(-1px); }
-  }
-  .nav-link:active {
+  /* ── Page Specific Overrides ── */
+  .actions { 
+    display: flex; flex-wrap: wrap; gap: 0.75rem; 
+    margin: 2.5rem 0; padding: 2rem; 
     background: var(--primary-light);
-    transform: scale(0.98);
-  }
-  .nav-link.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px hsla(156, 50%, 10%, 0.15); }
-  .nav-link.reunion-link { background: var(--primary-light); color: var(--primary); }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: hsl(30, 24%, 98%);
-    --card: #ffffff;
-    --primary: hsl(156, 50%, 14%);
-    --primary-hover: hsl(156, 50%, 10%);
-    --primary-light: hsl(156, 30%, 94%);
-    --accent: hsl(6, 63%, 46%);
-    --accent-light: hsla(6, 63%, 46%, 0.08);
-    --text: hsl(156, 30%, 10%);
-    --text-light: hsl(156, 12%, 40%);
-    --border: hsl(30, 20%, 90%);
-    --shadow: 0 4px 20px hsla(156, 50%, 10%, 0.04);
-    --radius: 12px;
-    
-    /* Semantic HSL */
-    --victime-h: 6;
-    --temoin-h: 45;
-    --intimidateur-h: 282;
-  }
-
-  /* ── Custom Scrollbar ── */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { 
-    background: hsl(156, 20%, 80%); 
-    border-radius: 10px; border: 2px solid var(--bg);
-  }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(156, 20%, 60%); }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-    line-height: 1.6;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E%22);
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Interaction Standards */
-  [data-action], button, a, select, input { 
-    cursor: pointer; 
-    touch-action: manipulation; 
-  }
-  input[type="text"], input[type="date"], input[type="time"] { cursor: text; }
-
-  .container { max-width: 800px; margin: 0 auto; }
-
-  /* ── Header ── */
-  header { text-align: center; margin-bottom: 2.5rem; position: relative; will-change: transform, opacity; }
-  header h1 {
-    font-family: 'Fraunces', serif;
-    font-size: 2.25rem;
-    color: var(--primary);
-    letter-spacing: -0.02em;
-    margin-bottom: .25rem;
-  }
-  header p { 
-    color: var(--text-light); 
-    font-size: .95rem; 
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  /* ── API status badge ── */
-  .api-badge {
-    display: inline-block; margin-top: .5rem;
-    font-size: .72rem; font-weight: 600; padding: .25rem .7rem;
-    border-radius: 20px; letter-spacing: .3px;
-  }
-  .api-badge.online  { background: #e8f0eb; color: #1a5632; }
-  .api-badge.offline { background: #fdf0ee; color: #c0392b; }
-
-  /* ── Section titles ── */
-  .section-title {
-    font-family: 'Fraunces', serif;
-    font-size: 1.2rem;
-    color: var(--primary);
-    margin: 2.5rem 0 1rem;
-    padding-bottom: .5rem;
-    border-bottom: 2px solid var(--primary-light);
-  }
-
-  /* ── Labels ── */
-  label.field-label {
-    font-size: .8rem; font-weight: 700; color: var(--text);
-    text-transform: uppercase; letter-spacing: .5px;
-  }
-
-  /* ── Global fields ── */
-  .global-fields { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-  .global-fields .field { flex: 1; display: flex; flex-direction: column; gap: .4rem; }
-  .global-fields input {
-    padding: .6rem .75rem;
-    border: 1.5px solid var(--border); border-radius: var(--radius);
-    font-family: inherit; font-size: .95rem;
-    background: var(--card); transition: border-color .2s;
-  }
-  .global-fields input:focus { outline: none; border-color: var(--primary); }
-
-  /* ── Student cards ── */
-  #students-list { display: flex; flex-direction: column; gap: 1rem; }
-  .student-card {
-    background: var(--card);
-    border: 1.5px solid var(--border); border-radius: var(--radius);
-    padding: 1rem 1.25rem; box-shadow: var(--shadow);
-    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem;
-  }
-  .student-card .field { flex: 1; min-width: 150px; }
-  .student-card.error { border-color: var(--accent); background: var(--accent-light); }
-  .field-error { font-size: .75rem; color: var(--accent); font-weight: 500; margin-top: .15rem; display: none; }
-  .field-error.visible { display: block; }
-  .global-fields .field-error { font-size: .78rem; }
-  .global-fields input.invalid,
-  .student-card input.invalid,
-  .student-card select.invalid { border-color: var(--accent); background: var(--accent-light); }
-  .error-summary {
-    background: var(--accent-light); border: 1.5px solid var(--accent);
-    border-radius: var(--radius); padding: .75rem 1rem;
-    margin-bottom: 1rem; font-size: .88rem; color: var(--accent);
-    display: none; line-height: 1.5;
-  }
-  .error-summary.visible { display: block; }
-  .student-card .field { display: flex; flex-direction: column; gap: .4rem; }
-  .student-card input,
-  .student-card select {
-    padding: .55rem .65rem;
-    border: 1.5px solid var(--border); border-radius: 8px;
-    font-family: inherit; font-size: .9rem;
-    background: #fafaf8; transition: border-color .2s;
-  }
-  .student-card input:focus,
-  .student-card select:focus { outline: none; border-color: var(--primary); }
-  .btn-delete {
-    background: none; border: none; color: var(--accent);
-    font-size: 1.25rem; cursor: pointer; padding: .65rem;
-    border-radius: 6px; transition: background .15s;
-    align-self: flex-end; margin-bottom: 0; display: inline-flex;
-  }
-  .btn-delete:hover { background: rgba(192,57,43,.08); }
-
-  /* ── Empty state ── */
-  .empty-state {
-    text-align: center; padding: 2rem 1rem;
-    color: var(--text-light); font-size: .95rem;
-    border: 2px dashed var(--border); border-radius: var(--radius); background: var(--card);
-  }
-
-  /* ── Role requirement hint ── */
-  .role-hint {
-    display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
-    align-items: center;
-  }
-  .role-chip {
-    display: inline-flex; align-items: center; gap: .3rem;
-    font-size: .75rem; font-weight: 700; padding: .25rem .65rem;
-    border-radius: 20px; border: 1.5px solid; opacity: .55;
-    transition: opacity .2s, transform .2s;
-  }
-  .role-chip.met { opacity: 1; transform: scale(1.04); }
-  .role-chip.optional { border-style: dashed; }
-  .chip-victime     { background: #fdecea; color: #c0392b; border-color: #f5c6cb; }
-  .chip-temoin      { background: #fef9e7; color: #9a7d0a; border-color: #f0e199; }
-  .chip-intimidateur{ background: #f0e0f7; color: #6c2d8b; border-color: #d5b8e8; }
-  .role-hint-label  { font-size: .75rem; color: var(--text-light); margin-right: .25rem; }
-
-  /* ── Buttons ── */
-  .actions { margin-top: 1.25rem; display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
-  .btn {
-    display: inline-flex; align-items: center; gap: .45rem;
-    padding: .55rem 1.1rem; border: none; border-radius: var(--radius);
-    font-family: inherit; font-size: .88rem; font-weight: 700;
-    cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @media (hover: hover) {
-    .btn:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 15px hsla(156, 50%, 10%, 0.12);
-    }
-  }
-  .btn:active { transform: translateY(0) scale(.98); opacity: 0.9; }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-hover); }
-  .btn-secondary { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
-  .btn-secondary:hover { background: var(--primary-light); }
-  .btn-export { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
-  .btn-export:hover { background: #fdfdfb; border-color: var(--primary); color: var(--primary); }
-  .btn-print { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
-  .btn-print:hover { background: #fdfdfb; border-color: var(--primary); color: var(--primary); }
-  .btn-import { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
-  .btn-import:hover { background: var(--primary-light); }
-
-  /* ── iPad Optimizations ── */
-  @media (pointer: coarse) {
-    .btn { padding: .7rem 1.3rem; }
-    .student-card input, .student-card select, .global-fields input { padding: .65rem; font-size: 1rem; }
-    .btn-delete { font-size: 1.4rem; padding: .5rem; }
-  }
-
-  /* ── Toast ── */
-  .toast {
-    position: fixed; bottom: 2rem; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--primary); color: #fff;
-    padding: .75rem 1.5rem; border-radius: var(--radius);
-    font-size: .9rem; font-weight: 500;
-    opacity: 0; transition: all .3s ease; z-index: 100;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.error { background: var(--accent); }
-
-  /* ── History ── */
-  .history-list { display: flex; flex-direction: column; gap: 1rem; }
-  .history-card {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    box-shadow: var(--shadow);
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1.5rem;
-    align-items: start;
-    position: relative;
-    overflow: hidden;
-    will-change: transform, opacity;
-  }
-  .history-card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-    width: 6px; background: var(--primary); opacity: 0.4;
+    border-radius: var(--radius-md);
+    justify-content: center;
   }
   
-  .history-date { 
-    display: flex; align-items: center; gap: .5rem;
-    color: var(--primary); font-family: 'Fraunces', serif; 
-    font-weight: 700; font-size: 1.1rem; margin-bottom: .75rem;
+  .search-bar {
+    display: flex; gap: 1rem; align-items: center;
+    margin-bottom: 2rem;
   }
-  .history-students { display: flex; flex-direction: column; gap: .6rem; }
-  .student-entry {
-    display: flex; align-items: center; gap: .75rem;
-    font-size: .95rem; font-weight: 500;
-  }
-  .history-tag {
-    font-size: .7rem; font-weight: 800; padding: .25rem .65rem; 
-    border-radius: 20px; text-transform: uppercase; letter-spacing: .05em;
-    border: 1px solid;
-  }
-  .tag-victime { 
-    background: hsla(var(--victime-h), 63%, 46%, 0.08); 
-    color: hsl(var(--victime-h), 63%, 46%); 
-    border-color: hsla(var(--victime-h), 63%, 46%, 0.2); 
-  }
-  .tag-temoin { 
-    background: hsla(var(--temoin-h), 85%, 38%, 0.08); 
-    color: hsl(var(--temoin-h), 85%, 38%); 
-    border-color: hsla(var(--temoin-h), 85%, 38%, 0.2); 
-  }
-  .tag-intimidateur { 
-    background: hsla(var(--intimidateur-h), 44%, 36%, 0.08); 
-    color: hsl(var(--intimidateur-h), 44%, 36%); 
-    border-color: hsla(var(--intimidateur-h), 44%, 36%, 0.2); 
+  
+  .search-bar input { flex: 1; }
+  
+  .history-list {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
   }
 
-  .history-actions { display: flex; flex-direction: column; gap: .6rem; }
-
-  .btn-sm {
-    padding: .5rem 1rem; font-size: .8rem; font-weight: 700;
-    border-radius: 8px; border: none; cursor: pointer;
-    transition: all .2s;
-    display: inline-flex; align-items: center; gap: .4rem; justify-content: center;
-  }
-  .btn-sm:hover { filter: brightness(0.95); transform: scale(1.02); }
-  .btn-sm.edit { background: var(--primary-light); color: var(--primary); }
-  .btn-sm.reunion { background: hsl(var(--temoin-h), 85%, 38%); color: #fff; }
-  .btn-sm.delete { background: var(--accent-light); color: var(--accent); }
-  .student-card select[data-field="type"] { font-weight: 500; }
-  .student-card[data-type="victime"] { border-left: 4px solid #c0392b; }
-  .student-card[data-type="temoin"] { border-left: 4px solid #d4ac0d; }
-  .student-card[data-type="intimidateur"] { border-left: 4px solid #7d3c98; }
-
-  /* ── Search bar ── */
-  .search-bar { display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem; }
-  .search-bar input {
-    flex: 1; padding: .6rem .85rem;
-    border: 1.5px solid var(--border); border-radius: var(--radius);
-    font-family: inherit; font-size: .9rem;
-    background: var(--card); transition: border-color .2s;
-  }
-  .search-bar input:focus { outline: none; border-color: var(--primary); }
-  .search-count { font-size: .8rem; color: var(--text-light); font-weight: 500; white-space: nowrap; }
-
-  /* ── Print ── */
-  @media print {
-    body { background: #fff; padding: 0; }
-    .actions, .search-bar, .btn-sm, .edit-banner, .error-summary,
-    .btn-delete, .empty-state, .toast, #students-list, .global-fields,
-    .section-title, .api-badge { display: none !important; }
-    .container { max-width: 100%; }
-    header { margin-bottom: 1rem; }
-    .history-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; margin-bottom: .5rem; }
-  }
-
-  .history-actions { display: flex; gap: .5rem; margin-top: .5rem; }
-  .btn-sm {
-    font-size: .75rem; padding: .3rem .65rem; border-radius: 6px; border: none;
-    font-family: inherit; cursor: pointer; font-weight: 500; transition: background .15s;
-  }
-  .btn-sm.delete { background: var(--accent-light); color: var(--accent); }
-  .btn-sm.delete:hover { background: #f9d6d0; }
-  .btn-sm.edit { background: var(--primary-light); color: var(--primary); }
-  .btn-sm.edit:hover { background: #d0e4d6; }
-  .edit-banner {
-    display: none; align-items: center; justify-content: space-between;
-    background: #fff8e1; border: 1.5px solid #f9c74f; border-radius: var(--radius);
-    padding: .65rem 1rem; margin-bottom: 1rem; font-size: .9rem; font-weight: 500;
-  }
-  .edit-banner.active { display: flex; }
-  .edit-banner .btn-cancel {
-    background: none; border: 1px solid var(--border); border-radius: 6px;
-    padding: .3rem .7rem; font-family: inherit; font-size: .8rem;
-    cursor: pointer; font-weight: 500;
-  }
-  .edit-banner .btn-cancel:hover { background: #f4f1ec; }
-  .empty-history {
-    text-align: center; padding: 1.5rem;
-    color: var(--text-light); font-size: .9rem; font-style: italic;
-  }
-
-  @media (max-width: 600px) {
-    .student-card { grid-template-columns: 1fr 1fr; }
-    .btn-delete { grid-column: 2; justify-self: end; }
-    .actions { flex-direction: column; align-items: stretch; }
-  }
-
-  /* ── Member Manager Modal ── */
   .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,.4); backdrop-filter: blur(4px);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
     display: none; align-items: center; justify-content: center;
-    z-index: 1000; animation: fadeIn .2s ease;
+    z-index: 1000; backdrop-filter: blur(8px);
   }
   .modal-overlay.active { display: flex; }
-  .modal-card {
-    background: var(--card); width: 100%; max-width: 400px;
-    border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,.15);
-    padding: 1.5rem; animation: modalUp .3s ease;
-    will-change: transform, opacity;
-  }
-  @keyframes modalUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-  .modal-header h2 { font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--primary); }
-  .btn-close { 
-    background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); 
-    padding: .5rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
-  }
-
-  .member-input-group { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
-  .member-input-group input {
-    flex: 1; padding: .6rem; border: 1.5px solid var(--border); border-radius: 8px;
-    font-family: inherit; font-size: .9rem;
-  }
   
-  .member-list-items {
-    max-height: 250px; overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    display: flex; flex-direction: column; gap: .5rem;
-    padding-right: .5rem;
+  .edit-banner {
+    display: none; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2rem; background: var(--primary);
+    color: #fff; font-weight: 700; border-radius: var(--radius-md);
+    margin-bottom: 2rem; box-shadow: var(--shadow-lg);
   }
-  .member-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: .6rem .85rem; background: #fafaf8;
-    border: 1px solid var(--border); border-radius: 8px;
-    font-size: .9rem; font-weight: 500;
+  .edit-banner.visible { display: flex; }
+
+  .role-chip {
+    padding: 0.5rem 1rem; border-radius: 30px;
+    font-size: 0.8rem; font-weight: 700;
+    border: 2px solid currentColor;
+    opacity: 0.4; transition: all 0.3s;
   }
-  .member-item .btn-remove {
-    background: none; border: none; color: var(--accent);
-    cursor: pointer; font-size: 1rem; padding: .2rem;
-  }
+  .role-chip.met { opacity: 1; transform: scale(1.05); background: currentColor; color: #fff; }
+  
+  /* Role specific colors for gestion page */
+  .chip-victime { color: var(--victime); }
+  .chip-temoin { color: var(--temoin); }
+  .chip-intimidateur { color: var(--intimidateur); }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container animate-reveal">
   <!-- Navigation -->
-  <nav class="top-nav">
-    <a class="nav-link active" href="phare-gestion-harcelement.html">📋 Gestion des cas</a>
-    <a class="nav-link" href="phare-reunion.html">📅 Réunion & Entretiens</a>
+  <nav class="top-nav glass">
+    <a class="nav-link active" href="phare-gestion-harcelement.html">📋 Gestion</a>
+    <a class="nav-link" href="phare-reunion.html">📅 Réunion</a>
     <a class="nav-link" href="#" id="logout-btn">🚪 Déconnexion</a>
   </nav>
 
@@ -441,60 +86,62 @@
   <header>
     <h1>Projet pHARe</h1>
     <p>Gestion des cas de harcèlement scolaire</p>
-    <span class="api-badge offline" id="api-status">⏳ Connexion…</span>
+    <div id="api-status-container">
+        <span class="badge api-badge offline" id="api-status">⏳ Connexion…</span>
+    </div>
   </header>
 
   <!-- Champs globaux -->
-  <div class="global-fields">
-    <div class="field">
-      <label class="field-label" for="date">Date</label>
+  <div class="global-fields card" style="margin-bottom: 2rem; display: flex; gap: 1.5rem;">
+    <div class="field-group" style="flex: 1; margin-bottom: 0;">
+      <label for="date">Date de l'incident</label>
       <input type="date" id="date">
-      <div class="field-error" id="error-date">Veuillez renseigner la date.</div>
+      <div class="field-error" id="error-date" style="color: var(--accent); font-size: 0.8rem; margin-top: 0.25rem; display: none;">Veuillez renseigner la date.</div>
     </div>
-    <div class="field">
-      <label class="field-label" for="heure">Heure</label>
+    <div class="field-group" style="flex: 1; margin-bottom: 0;">
+      <label for="heure">Heure approximative</label>
       <input type="time" id="heure">
-      <div class="field-error" id="error-heure">Veuillez renseigner l'heure.</div>
+      <div class="field-error" id="error-heure" style="color: var(--accent); font-size: 0.8rem; margin-top: 0.25rem; display: none;">Veuillez renseigner l'heure.</div>
     </div>
   </div>
 
   <!-- Résumé des erreurs -->
-  <div class="error-summary" id="error-summary"></div>
+  <div class="error-summary card" id="error-summary" style="display: none; background: var(--accent-light); border-color: var(--accent); color: var(--accent); margin-bottom: 1.5rem;"></div>
 
   <!-- Bannière mode édition -->
   <div class="edit-banner" id="edit-banner">
     <span>✍️ Modification du cas en cours…</span>
-    <button class="btn-cancel" data-action="cancel-edit">Annuler</button>
+    <button class="btn btn-ghost" data-action="cancel-edit" style="color: #fff; border-color: rgba(255,255,255,0.5);">Annuler</button>
   </div>
 
   <!-- Indicateurs de rôles -->
-  <div class="role-hint" id="role-hint" style="display:none">
-    <span class="role-hint-label">Requis :</span>
+  <div class="role-hint" id="role-hint" style="display:none; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center;">
+    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Requis :</span>
     <span class="role-chip chip-victime" id="chip-victime">🔴 Victime</span>
-    <span class="role-hint-label" style="margin-left:.5rem">Optionnel :</span>
-    <span class="role-chip chip-temoin optional" id="chip-temoin">🟡 Témoin</span>
-    <span class="role-chip chip-intimidateur optional" id="chip-intimidateur">🟣 Intimidateur</span>
+    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-left: 0.5rem;">Optionnel :</span>
+    <span class="role-chip chip-temoin" id="chip-temoin">🟡 Témoin</span>
+    <span class="role-chip chip-intimidateur" id="chip-intimidateur">🟣 Intimidateur</span>
   </div>
 
   <!-- Liste des élèves -->
-  <div id="students-list"></div>
+  <div id="students-list" style="display: flex; flex-direction: column; gap: 1rem;"></div>
 
   <!-- Boutons -->
-  <div class="actions">
-    <button class="btn btn-secondary" data-action="add-student">＋ Ajouter un élève</button>
-    <button class="btn btn-primary" data-action="save-case">💾 Enregistrer</button>
-    <button class="btn btn-import" data-action="import-json">📂 Importer JSON</button>
+  <div class="actions glass">
+    <button class="btn btn-ghost" data-action="add-student">＋ Ajouter un élève</button>
+    <button class="btn btn-primary" data-action="save-case">💾 Enregistrer le cas</button>
+    <button class="btn btn-ghost" data-action="import-json">📂 Importer</button>
     <input type="file" id="import-file" style="display:none" accept=".json">
-    <button class="btn btn-export" data-action="open-members">👥 Équipe</button>
-    <button class="btn btn-export" data-action="export-json">📄 Exporter JSON</button>
-    <button class="btn btn-print" data-action="print-report">🖨️ Imprimer</button>
+    <button class="btn btn-ghost" data-action="open-members">👥 Équipe</button>
+    <button class="btn btn-ghost" data-action="export-json">📄 Exporter</button>
+    <button class="btn btn-ghost" data-action="print-report">🖨️ Imprimer</button>
   </div>
 
   <!-- Historique -->
-  <h2 class="section-title">Historique des cas</h2>
-  <div class="search-bar">
+  <h2 style="margin: 3rem 0 1.5rem; color: var(--primary);">Historique des dossiers</h2>
+  <div class="search-bar card">
     <input type="text" id="search-input" placeholder="Rechercher un élève par nom…">
-    <span class="search-count" id="search-count"></span>
+    <span class="badge" id="search-count" style="background: var(--primary-light); color: var(--primary);"></span>
   </div>
   <div id="history-list" class="history-list"></div>
 </div>
@@ -503,26 +150,29 @@
 
 <!-- Modal Gestion des Membres -->
 <div class="modal-overlay" id="member-modal">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h2>Membres pHARe</h2>
-      <button class="btn-close" data-action="close-members">✕</button>
+  <div class="card" style="width: 100%; max-width: 450px; padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 style="color: var(--primary);">Équipe pHARe</h2>
+      <button class="btn" data-action="close-members" style="background: none; font-size: 1.5rem; color: var(--text-muted);">✕</button>
     </div>
     
-    <div class="member-input-group">
-      <input type="text" id="new-member-name" placeholder="Nom du nouveau membre…">
-      <button class="btn btn-primary" data-action="add-member">Ajouter</button>
+    <div class="field-group">
+      <label for="new-member-name">Ajouter un membre</label>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="new-member-name" placeholder="Nom et Prénom..." style="flex: 1;">
+        <button class="btn btn-primary" data-action="add-member">Ajouter</button>
+      </div>
     </div>
 
-    <div id="member-list-items" class="member-list-items">
+    <div id="member-list-items" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
       <!-- Rempli en JS -->
     </div>
   </div>
 </div>
 
-<script src="../node_modules/gsap/dist/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script type="module" src="js/ui.js"></script>
-  <script>
+<script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -530,6 +180,6 @@
           .catch(err => console.error('SW Registration Failed', err));
       });
     }
-  </script>
+</script>
 </body>
 </html>

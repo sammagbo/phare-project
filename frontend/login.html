@@ -9,202 +9,100 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#0a2d1d">
+<link rel="stylesheet" href="css/index.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
-
-  :root {
-    --bg: hsl(30, 24%, 98%);
-    --card: #ffffff;
-    --primary: hsl(156, 50%, 14%);
-    --primary-hover: hsl(156, 50%, 10%);
-    --primary-light: hsl(156, 30%, 94%);
-    --accent: hsl(6, 63%, 46%);
-    --text: hsl(156, 30%, 10%);
-    --text-light: hsl(156, 12%, 40%);
-    --border: hsl(30, 20%, 90%);
-    --radius: 12px;
-  }
-
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
     display: flex;
-    background: hsla(156, 40%, 98%, 1);
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
-    -webkit-tap-highlight-color: transparent;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    margin: 0;
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #0a2d1d 0%, #1a5632 100%);
   }
 
-  /* Touch-first Interaction Optimization */
-  [data-action], button, a, label, input, select {
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  input[type="text"], input[type="password"] { cursor: text; }
-
-  .login-card {
-    background: var(--card);
+  .login-container {
     width: 100%;
-    max-width: 400px;
-    padding: 2.5rem;
-    border-radius: var(--radius);
-    box-shadow: 0 20px 50px hsla(156, 50%, 10%, 0.08);
-    border: 1.5px solid var(--border);
-    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 420px;
+    padding: 3rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: revealUp 0.8s var(--ease-out) both;
   }
 
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
 
   header h1 {
-    font-family: 'Fraunces', serif;
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 0.5rem;
   }
 
   header p {
-    color: var(--text-light);
-    font-size: 0.9rem;
+    color: var(--text-muted);
     font-weight: 500;
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
-    color: var(--text);
-  }
-
-  input {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 1rem;
-    background: #fafaf8;
-    transition: all 0.2s;
-  }
-
-  input:focus {
-    outline: none;
-    border-color: var(--primary);
-    background: #fff;
-    box-shadow: 0 0 0 4px var(--primary-light);
   }
 
   .btn-login {
     width: 100%;
-    padding: 1rem;
-    min-height: 48px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-family: inherit;
+    margin-top: 1.5rem;
+    height: 3.5rem;
     font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  @media (hover: hover) {
-    .btn-login:hover {
-      background: var(--primary-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px hsla(156, 50%, 10%, 0.15);
-    }
-  }
-
-  .btn-login:active {
-    transform: scale(0.98);
-    opacity: 0.9;
   }
 
   .error-box {
-    background: hsla(6, 63%, 46%, 0.08);
-    border: 1.5px solid var(--accent);
+    background: var(--accent-light);
     color: var(--accent);
     padding: 1rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--accent);
+    margin-bottom: 2rem;
+    font-weight: 600;
+    text-align: center;
     display: none;
-    text-align: center;
-    line-height: 1.4;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .footer {
-    text-align: center;
-    margin-top: 2rem;
-    font-size: 0.8rem;
-    color: var(--text-light);
   }
 </style>
 </head>
 <body>
 
-<div class="login-card">
+<div class="login-container">
   <header>
     <h1>pHARe</h1>
-    <p>Système de gestion académique</p>
+    <p>Portail de gestion académique</p>
   </header>
 
-  <div id="error-message" class="error-box">Identifiants incorrects. Veuillez réessayer.</div>
+  <div id="error-message" class="error-box">Identifiants incorrects</div>
 
   <form id="login-form">
-    <div class="form-group">
-      <label for="email">Email professionnel</label>
-      <input type="email" id="email" placeholder="nom@etablissement.fr" required autofocus>
+    <div class="field-group">
+      <label for="email">Identifiant professionnel</label>
+      <input type="email" id="email" placeholder="nom@education.fr" required autofocus>
     </div>
 
-    <div class="form-group">
+    <div class="field-group">
       <label for="password">Mot de passe</label>
       <input type="password" id="password" placeholder="••••••••" required>
     </div>
 
-    <button type="submit" class="btn-login" id="submit-btn">Se connecter</button>
+    <button type="submit" class="btn btn-primary btn-login" id="submit-btn">Entrer dans le système</button>
   </form>
 
-  <div class="footer">
-    &copy; 2026 Projet pHARe — Éducation Nationale
-  </div>
+  <footer style="margin-top: 3rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+    &copy; 2026 Programme pHARe — Ministère de l'Éducation
+  </footer>
 </div>
 
 <script type="module" src="js/login.js"></script>
-
-  <script>
+<script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -212,6 +110,6 @@
           .catch(err => console.error('SW Registration Failed', err));
       });
     }
-  </script>
+</script>
 </body>
 </html>

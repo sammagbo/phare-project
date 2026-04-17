@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupEventListeners();
   
   // Initialize State
-  store.loadMembers(); 
+  await store.loadMembers(); 
 
   // Initialize View
   const now = new Date();
@@ -90,12 +90,12 @@ function setupEventListeners() {
     }
   });
 
-  document.getElementById('member-list-items').addEventListener('click', (e) => {
+  document.getElementById('member-list-items').addEventListener('click', async (e) => {
     const btnRemove = e.target.closest('[data-remove-member]');
     if(btnRemove) {
       const idx = parseInt(btnRemove.dataset.removeMember, 10);
       if (confirm(`Supprimer de la liste ?`)) {
-        store.removeMember(idx);
+        await store.removeMember(idx);
         toast("Membre retiré");
       }
     }
@@ -137,15 +137,15 @@ function render(state) {
   const badgeEl = document.getElementById('api-status');
   if (badgeEl) {
     badgeEl.textContent = state.apiOnline ? '🟢 API connectée' : '🔴 Mode hors-ligne';
-    badgeEl.className = 'api-badge ' + (state.apiOnline ? 'online' : 'offline');
+    badgeEl.className = 'badge api-badge ' + (state.apiOnline ? 'online' : 'offline');
   }
 
   // Render Edit Banner Visibility
   const editBanner = document.getElementById('edit-banner');
   if (state.editingId) {
-    editBanner.classList.add('active');
+    editBanner.classList.add('visible');
   } else {
-    editBanner.classList.remove('active');
+    editBanner.classList.remove('visible');
   }
 
   // Render Members Modal List
@@ -154,9 +154,9 @@ function render(state) {
     memContainer.innerHTML = '<p style="text-align:center; font-size:.8rem; color:var(--text-light); padding:1rem;">Aucun membre enregistré.</p>';
   } else {
     memContainer.innerHTML = state.members.map((m, i) => `
-      <div class="member-item">
-        <span>${m}</span>
-        <button class="btn-remove" data-remove-member="${i}" title="Supprimer">✕</button>
+      <div class="card" style="padding: 0.75rem 1rem; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <span style="font-weight: 600;">${m}</span>
+        <button class="btn btn-ghost" data-remove-member="${i}" style="color: var(--accent); border: none; padding: 0.5rem;">✕</button>
       </div>
     `).join('');
   }
@@ -189,11 +189,11 @@ function toast(msg, isError = false) {
   setTimeout(() => el.className = 'toast', 2500);
 }
 
-function handleAddMember() {
+async function handleAddMember() {
   const input = document.getElementById('new-member-name');
   const name = input.value.trim();
   if (!name) return;
-  if(store.addMember(name)) {
+  if(await store.addMember(name)) {
     input.value = '';
     toast("Membre ajouté");
   } else {
@@ -303,18 +303,18 @@ function addStudentUI(presetData = null) {
     .join('');
 
   card.innerHTML = `
-    <div class="field">
-      <label class="field-label">Nom de l'élève</label>
+    <div class="field-group">
+      <label>Nom de l'élève</label>
       <input type="text" placeholder="Prénom Nom" data-field="nom">
       <div class="field-error" data-error="nom">Le nom est obligatoire.</div>
     </div>
-    <div class="field">
-      <label class="field-label">Classe</label>
+    <div class="field-group">
+      <label>Classe</label>
       <input type="text" placeholder="Ex: 6ème A" data-field="classe">
       <div class="field-error" data-error="classe">La classe est obligatoire.</div>
     </div>
-    <div class="field">
-      <label class="field-label">Type</label>
+    <div class="field-group">
+      <label>Type</label>
       <select data-field="type">
         <option value="" disabled selected>Choisir…</option>
         <option value="victime">Victime</option>
@@ -323,18 +323,18 @@ function addStudentUI(presetData = null) {
       </select>
       <div class="field-error" data-error="type">Le type est obligatoire.</div>
     </div>
-    <div class="field field-link" style="display:none">
-      <label class="field-label">Lié à (Victime)</label>
+    <div class="field-group field-link" style="display:none">
+      <label>Lié à (Victime)</label>
       <select data-field="lie_a">
         <option value="" disabled selected>Choisir…</option>
       </select>
       <div class="field-error" data-error="lie_a">Cible manquante.</div>
     </div>
-    <div class="field">
-      <label class="field-label">Membre pHARe</label>
+    <div class="field-group">
+      <label>Membre pHARe</label>
       <select data-field="membre">${opts}</select>
     </div>
-    <button class="btn-delete" title="Supprimer" data-delete-student="${id}">✕</button>
+    <button class="btn btn-ghost" style="color: var(--accent); align-self: flex-end; margin-bottom: 1.25rem;" title="Supprimer" data-delete-student="${id}">✕</button>
   `;
   list.appendChild(card);
   
@@ -494,24 +494,27 @@ function renderHistoryUI(filteredCases, state) {
 
   container.innerHTML = filteredCases.map((c) => {
     const lines = c.eleves.map(e =>
-      `<div class="student-entry">
-        ${e.nom} 
-        <span class="history-tag tag-${typeClass(e.type)}">${typeIcon(e.type)} ${typeLabel(e.type)}</span>
-        ${e.membre ? '<span style="opacity:0.6; font-size:.8em"> → Assigned to ' + e.membre + '</span>' : ''}
+      `<div class="student-entry" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
+        <span class="badge" style="background: var(--${typeClass(e.type)}); color: #fff; min-width: 90px; text-align: center;">${typeLabel(e.type)}</span>
+        <span style="font-weight: 700;">${e.nom}</span>
+        ${e.membre ? `<span class="badge" style="background: var(--primary-light); color: var(--primary); font-size: 0.75rem;">👤 ${e.membre}</span>` : ''}
       </div>`
     ).join('');
 
     return `
-      <div class="history-card">
-        <div>
-          <div class="history-date">📅 ${formatDate(c.date)} <span style="font-family:'DM Sans'; font-weight:400; font-size:.9em; opacity:.6; margin-left:.5rem">${c.heure}</span></div>
-          <div class="history-students">${lines}</div>
+      <div class="card history-card animate-reveal" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+          <div>
+            <div style="font-family: var(--font-display); font-size: 1.1rem; color: var(--primary); font-weight: 700;">📅 Dossier du ${formatDate(c.date)}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">🕘 ${c.heure}</div>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button class="btn btn-ghost" style="padding: 0.4rem 0.75rem; font-size: 0.75rem;" data-edit-case="${c.id}" title="Modifier">✏️</button>
+            <button class="btn btn-ghost" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--primary);" data-schedule-case="${c.id}" title="Planifier">📅</button>
+            <button class="btn btn-ghost" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; color: var(--accent);" data-delete-case="${c.id}" title="Supprimer">✕</button>
+          </div>
         </div>
-        <div class="history-actions">
-          <button class="btn-sm edit" data-edit-case="${c.id}">✏️ Edit Case</button>
-          <button class="btn-sm reunion" data-schedule-case="${c.id}">📅 Schedule</button>
-          <button class="btn-sm delete" data-delete-case="${c.id}">🗑️ Archive</button>
-        </div>
+        <div class="history-students">${lines}</div>
       </div>
     `;
   }).join('');
