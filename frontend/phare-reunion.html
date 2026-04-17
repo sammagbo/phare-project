@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>pHARe — Réunion & Attribution des entretiens</title>
+<script type="module">
+  import { checkAuth } from './js/auth.js';
+  checkAuth();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,700&display=swap');
 
@@ -432,7 +436,16 @@
   <nav class="top-nav">
     <a class="nav-link" href="phare-gestion-harcelement.html">📋 Gestion des cas</a>
     <a class="nav-link active" href="phare-reunion.html">📅 Réunion & Entretiens</a>
+    <a class="nav-link" href="#" id="logout-btn">🚪 Déconnexion</a>
   </nav>
+
+  <script type="module">
+    import { logoutUser } from './js/auth.js';
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      logoutUser();
+    });
+  </script>
 
   <header>
     <h1>pHARe — Attribution des entretiens</h1>
