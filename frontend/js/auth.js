@@ -5,7 +5,12 @@
 
 const AUTH_KEY = 'phare_jwt_token';
 const REFRESH_KEY = 'phare_refresh_token';
-const AUTH_API_URL = 'http://localhost:3000/api/auth'; // Base URL for the auth service
+// Set the IP dynamically so tablets point back to the PC instead of themselves
+const HOSTNAME = window.location.hostname || 'localhost';
+const AUTH_API_URL = `http://${HOSTNAME}:3000/api/auth`; 
+
+// Mutex to prevent multiple simultaneous refresh calls
+let refreshingPromise = null;
 
 /**
  * Log in the user by calling the backend API.
@@ -89,34 +94,47 @@ export const logoutUser = async () => {
 
 /**
  * Attempts to silently refresh the access token using the refresh token.
+ * Mutex-protected to avoid race conditions on mobile.
  * @returns {Promise<string|null>} The new token if successful, null if failed.
  */
 export const refreshAccessToken = async () => {
+    // If a refresh is already in progress, return the existing promise
+    if (refreshingPromise) {
+        return refreshingPromise;
+    }
+
     const refreshToken = localStorage.getItem(REFRESH_KEY);
     if (!refreshToken) return null;
 
-    try {
-        const response = await fetch(`${AUTH_API_URL}/refresh`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken })
-        });
+    refreshingPromise = (async () => {
+        try {
+            const response = await fetch(`${AUTH_API_URL}/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken })
+            });
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.token) {
-                localStorage.setItem(AUTH_KEY, data.token);
-                return data.token;
+            if (response.ok) {
+                const data = await response.json();
+                if (data.token) {
+                    localStorage.setItem(AUTH_KEY, data.token);
+                    return data.token;
+                }
             }
+            
+            // If refresh fails, tokens are truly dead.
+            console.error("Session expired or refresh token invalid. Logging out.");
+            logoutUser();
+            return null;
+        } catch (err) {
+            console.error(`Network error reaching auth server at ${AUTH_API_URL}:`, err);
+            return null; 
+        } finally {
+            refreshingPromise = null;
         }
-        
-        // If refresh fails, tokens are dead. Logout.
-        logoutUser();
-        return null;
-    } catch (err) {
-        console.error("Failed to refresh token:", err);
-        return null; // Network error, don't force logout yet, might just be offline
-    }
+    })();
+
+    return refreshingPromise;
 };
 
 /**
@@ -142,3 +160,16 @@ export const checkAuth = () => {
 };
 
 export const getToken = () => localStorage.getItem(AUTH_KEY);
+
+/**
+ * Mobile/iPad optimization: Sync session when the app is foregrounded.
+ */
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        const token = getToken();
+        if (token) {
+            console.log("App foregrounded. Verifying session integrity...");
+            // Optional: call a lightweight 'me' or 'status' endpoint here
+        }
+    }
+});

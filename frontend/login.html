@@ -2,8 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Connexion — pHARe</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0a2d1d">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
 
@@ -26,12 +31,21 @@
     color: var(--text);
     min-height: 100vh;
     display: flex;
+    background: hsla(156, 40%, 98%, 1);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    -webkit-tap-highlight-color: transparent;
     align-items: center;
     justify-content: center;
     padding: 1rem;
     margin: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
   }
+
+  /* Touch-first Interaction Optimization */
+  [data-action], button, a, label, input, select {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  input[type="text"], input[type="password"] { cursor: text; }
 
   .login-card {
     background: var(--card);
@@ -101,7 +115,8 @@
 
   .btn-login {
     width: 100%;
-    padding: 0.9rem;
+    padding: 1rem;
+    min-height: 48px;
     background: var(--primary);
     color: #fff;
     border: none;
@@ -110,26 +125,44 @@
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  @media (hover: hover) {
+    .btn-login:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px hsla(156, 50%, 10%, 0.15);
+    }
   }
 
-  .btn-login:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px hsla(156, 50%, 10%, 0.15);
+  .btn-login:active {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 
   .error-box {
     background: hsla(6, 63%, 46%, 0.08);
     border: 1.5px solid var(--accent);
     color: var(--accent);
-    padding: 0.75rem 1rem;
+    padding: 1rem;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 500;
     margin-bottom: 1.5rem;
     display: none;
     text-align: center;
+    line-height: 1.4;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .footer {
@@ -170,5 +203,15 @@
 </div>
 
 <script type="module" src="js/login.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW Registered', reg))
+          .catch(err => console.error('SW Registration Failed', err));
+      });
+    }
+  </script>
 </body>
 </html>

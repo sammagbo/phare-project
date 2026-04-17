@@ -2,7 +2,8 @@
 
 import { getToken, logoutUser, refreshAccessToken } from './auth.js';
 
-export const API_URL = 'http://localhost:8080/api/cas'; // Note: your main Java API URL
+const HOSTNAME = window.location.hostname || 'localhost';
+export const API_URL = `http://${HOSTNAME}:8080/api/cas`; // Note: your main Java API URL
 
 /**
  * Generic API Call wrapper

@@ -1,0 +1,18 @@
+{
+  "name": "pHARe — Gestion de cas",
+  "short_name": "pHARe",
+  "description": "Système de gestion des cas de harcèlement scolaire.",
+  "start_url": "./login.html",
+  "display": "standalone",
+  "background_color": "#fcfaf6",
+  "theme_color": "#0a2d1d",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

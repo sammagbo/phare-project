@@ -13,9 +13,9 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet()); // Secure HTTP headers
 app.use(apiLimiter); // Apply global rate limiting
 
-// CORS explicitly configured
+// CORS temporarily relaxed for local network testing
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://127.0.0.1:5500', 'http://localhost:5500'], // Assuming these are valid local frontend origins
+    origin: '*', // Allows any origin (tablet, phone, secondary PCs)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
