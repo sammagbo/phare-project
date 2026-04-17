@@ -42,9 +42,9 @@ JAVA_PID=$!
 cd ..
 
 # 3. Iniciar Frontend (Static Server) - Porta 5000
-echo -e "${YELLOW}[3/3] Iniciando Servidor Frontend...${NC}"
+echo -e "${YELLOW}[3/3] Iniciando Servidor Frontend (Python)...${NC}"
 cd frontend
-npx serve -l 5000 > /dev/null 2>&1 &
+python3 -m http.server 5000 > /dev/null 2>&1 &
 FRONT_PID=$!
 cd ..
 
