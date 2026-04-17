@@ -1,73 +1,100 @@
-# React + TypeScript + Vite
+# pHARe — Système de Gestion du Harcèlement Scolaire
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application web pour la gestion et le suivi des cas de harcèlement scolaire, le planning des entretiens, et la coordination de l'équipe pHARe.
 
-Currently, two official plugins are available:
+## Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+phare-project/
+├── backend/            # API REST — Spring Boot 3 + PostgreSQL
+├── backend-node/       # Service d'authentification — Express + JWT + SQLite
+└── frontend/           # PWA — HTML/CSS/JS vanilla + GSAP
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Stack Technique
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Composant | Technologie |
+|-----------|-------------|
+| **API principale** | Java 17, Spring Boot 3.2, JPA/Hibernate, PostgreSQL |
+| **Auth service** | Node.js, Express 5, JWT, bcrypt, SQLite |
+| **Frontend** | HTML5, CSS3 (vanilla), ES Modules, GSAP |
+| **PWA** | Service Worker, Web App Manifest |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Endpoints API
+
+### Cas (`/api/cas`)
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| `GET` | `/api/cas` | Lister tous les cas |
+| `GET` | `/api/cas?search=nom` | Rechercher par nom d'élève |
+| `GET` | `/api/cas/{id}` | Obtenir un cas par ID |
+| `POST` | `/api/cas` | Créer un nouveau cas |
+| `PUT` | `/api/cas/{id}` | Modifier un cas |
+| `DELETE` | `/api/cas/{id}` | Supprimer un cas |
+
+### Entretiens (`/api/entretiens`)
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| `GET` | `/api/entretiens` | Entretiens planifiés |
+| `GET` | `/api/entretiens/pending` | Élèves en attente |
+| `PUT` | `/api/entretiens/{eleveId}` | Planifier un entretien |
+| `DELETE` | `/api/entretiens/{eleveId}` | Annuler un entretien |
+
+### Membres (`/api/membres`)
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| `GET` | `/api/membres` | Lister l'équipe |
+| `POST` | `/api/membres` | Ajouter un membre |
+| `DELETE` | `/api/membres/{id}` | Retirer un membre |
+
+### Auth (`/api/auth`)
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| `POST` | `/api/auth/login` | Connexion (JWT) |
+| `POST` | `/api/auth/refresh` | Renouveler le token |
+| `POST` | `/api/auth/logout` | Déconnexion |
+
+## Lancement
+
+### Backend Java (port 8080)
+```bash
+cd backend
+mvn spring-boot:run
 ```
+
+### Backend Node Auth (port 3000)
+```bash
+cd backend-node
+npm install
+node server.js
+```
+
+### Frontend
+Servir le dossier `frontend/` avec un serveur HTTP :
+```bash
+cd frontend
+npx serve .
+```
+
+## Modèle de Données
+
+```
+Cas (1) ──── (*) Eleve
+                  ├── nom, classe, type (VICTIME|TEMOIN|INTIMIDATEUR)
+                  ├── membre, lie_a
+                  └── dateEntretien, heureEntretien, membreEntretien
+
+Membre
+  └── id, nom (unique)
+```
+
+## Mode Hors-Ligne
+
+Le frontend fonctionne en mode offline grâce à :
+- **localStorage** comme fallback pour les cas et les entretiens
+- **Service Worker** pour le cache des assets
+- Indicateur visuel `🟢 API connectée` / `🔴 Mode hors-ligne`
+
+## Licence
+
+© 2026 Projet pHARe — Éducation Nationale
