@@ -41,10 +41,10 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080 > /dev/null 2
 JAVA_PID=$!
 cd ..
 
-# 3. Iniciar Frontend (Static Server) - Porta 5000
+# 3. Iniciar Frontend (Static Server) - Porta 8000
 echo -e "${YELLOW}[3/3] Iniciando Servidor Frontend (Python)...${NC}"
 cd frontend
-python3 -m http.server 5000 > /dev/null 2>&1 &
+python3 -m http.server 8000 > /dev/null 2>&1 &
 FRONT_PID=$!
 cd ..
 
@@ -52,16 +52,16 @@ echo -e "${GREEN}✅ Todos os serviços estão subindo!${NC}"
 echo -e "----------------------------------------------------"
 echo -e "🔑 Auth: http://localhost:3000"
 echo -e "📡 API:  http://localhost:8080"
-echo -e "🌐 App:  http://localhost:5000/login.html"
+echo -e "🌐 App:  http://localhost:8000/login.html"
 echo -e "----------------------------------------------------"
 echo -e "${BLUE}Pressione CTRL+C para encerrar todos os servidores.${NC}"
 
 # Aguarda um momento para os servidores subirem e tenta abrir o navegador
 sleep 5
 if command -v xdg-open > /dev/null; then
-    xdg-open http://localhost:5000/login.html
+    xdg-open http://localhost:8000/login.html
 elif command -v open > /dev/null; then
-    open http://localhost:5000/login.html
+    open http://localhost:8000/login.html
 fi
 
 # Mantém o script rodando para monitorar os processos
