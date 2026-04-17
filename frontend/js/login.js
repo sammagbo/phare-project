@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!loginForm) return;
 
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         // Clear previous error
@@ -25,15 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Connexion en cours...';
 
-        // Add a slight artificial delay for a better UX feeling (simulating network request)
-        setTimeout(() => {
-            const success = loginUser(email, password);
+        try {
+            // Using actual async backend call
+            const result = await loginUser(email, password);
 
-            if (success) {
+            if (result.success) {
                 // Successful login
                 window.location.href = 'phare-gestion-harcelement.html';
             } else {
                 // Failed login
+                errorBox.textContent = result.message || 'Identifiants incorrects.';
                 errorBox.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Se connecter';
@@ -44,7 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 void card.offsetWidth; // trigger reflow
                 card.style.animation = 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both';
             }
-        }, 800);
+        } catch (error) {
+            console.error("Login exception:", error);
+            errorBox.textContent = "Erreur de connexion au serveur.";
+            errorBox.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Se connecter';
+        }
     });
 });
 
