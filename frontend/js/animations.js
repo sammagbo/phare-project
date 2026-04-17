@@ -1,11 +1,14 @@
 // animations.js - Centralized GSAP animation logic
+if (typeof gsap !== "undefined") {
+  gsap.defaults({ force3D: true, overwrite: "auto" });
+}
 
 /**
- * Checks if the device is pointer-coarse (e.g., tablet/mobile).
- * We omit sticky hover animations on touch devices as an iPad optimization constraint.
+ * Checks if the device is a touch-based device with a coarse pointer.
+ * This is used to disable "sticky" hover animations on tablets.
  */
-function isTouchDevice() {
-  return window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+export function isTouchDevice() {
+  return window.matchMedia("(pointer: coarse)").matches;
 }
 
 /**
@@ -16,10 +19,13 @@ export function animateEntry() {
     console.warn("GSAP is not loaded.");
     return;
   }
-  gsap.from(".top-nav", { y: -20, opacity: 0, duration: 0.8, ease: "power3.out" });
-  gsap.from("header", { y: -20, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.1 });
-  gsap.from(".global-fields", { y: 20, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.2 });
-  gsap.from(".actions", { y: 20, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.3 });
+  
+  const tl = gsap.timeline({ defaults: { duration: 0.8, ease: "power3.out" } });
+  
+  tl.from(".top-nav", { y: -20, opacity: 0 })
+    .from("header", { y: -20, opacity: 0 }, "-=0.7")
+    .from(".global-fields", { y: 20, opacity: 0 }, "-=0.7")
+    .from(".actions", { y: 20, opacity: 0 }, "-=0.7");
 }
 
 /**
@@ -31,7 +37,7 @@ export function animateCardAdd(card) {
     { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.4)", clearProps: "all" }
   );
 
-  if (!isTouchDevice()) {
+  if (window.matchMedia("(hover: hover)").matches) {
     card.addEventListener("mouseenter", () => gsap.to(card, { y: -2, boxShadow: "0 10px 30px hsla(156, 50%, 10%, 0.12)", duration: 0.3, ease: "power2.out" }));
     card.addEventListener("mouseleave", () => gsap.to(card, { y: 0, boxShadow: "0 4px 20px hsla(156, 50%, 10%, 0.04)", duration: 0.3, ease: "power2.out" }));
   }
@@ -58,7 +64,7 @@ export function animateHistoryStagger(cards) {
       { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.08, ease: "power3.out", clearProps: "all" }
     );
     
-    if (!isTouchDevice()) {
+    if (window.matchMedia("(hover: hover)").matches) {
       cards.forEach(card => {
         card.addEventListener('mouseenter', () => gsap.to(card, { y: -4, boxShadow: "0 12px 40px hsla(156, 50%, 10%, 0.08)", duration: 0.3, ease: "power2.out" }));
         card.addEventListener('mouseleave', () => gsap.to(card, { y: 0, boxShadow: "0 4px 20px hsla(156, 50%, 10%, 0.04)", duration: 0.3, ease: "power2.out" }));
