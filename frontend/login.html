@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — pHARe</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:wght@700&display=swap');
+
+  :root {
+    --bg: hsl(30, 24%, 98%);
+    --card: #ffffff;
+    --primary: hsl(156, 50%, 14%);
+    --primary-hover: hsl(156, 50%, 10%);
+    --primary-light: hsl(156, 30%, 94%);
+    --accent: hsl(6, 63%, 46%);
+    --text: hsl(156, 30%, 10%);
+    --text-light: hsl(156, 12%, 40%);
+    --border: hsl(30, 20%, 90%);
+    --radius: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    margin: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .login-card {
+    background: var(--card);
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 50px hsla(156, 50%, 10%, 0.08);
+    border: 1.5px solid var(--border);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+
+  header p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    background: #fafaf8;
+    transition: all 0.2s;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px var(--primary-light);
+  }
+
+  .btn-login {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+
+  .btn-login:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px hsla(156, 50%, 10%, 0.15);
+  }
+
+  .error-box {
+    background: hsla(6, 63%, 46%, 0.08);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    display: none;
+    text-align: center;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <header>
+    <h1>pHARe</h1>
+    <p>Système de gestion académique</p>
+  </header>
+
+  <div id="error-message" class="error-box">Identifiants incorrects. Veuillez réessayer.</div>
+
+  <form id="login-form">
+    <div class="form-group">
+      <label for="email">Email professionnel</label>
+      <input type="email" id="email" placeholder="nom@etablissement.fr" required autofocus>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Mot de passe</label>
+      <input type="password" id="password" placeholder="••••••••" required>
+    </div>
+
+    <button type="submit" class="btn-login" id="submit-btn">Se connecter</button>
+  </form>
+
+  <div class="footer">
+    &copy; 2026 Projet pHARe — Éducation Nationale
+  </div>
+</div>
+
+<script type="module" src="js/login.js"></script>
+</body>
+</html>
