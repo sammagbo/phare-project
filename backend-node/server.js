@@ -10,15 +10,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Security Middleware
-app.use(helmet()); // Secure HTTP headers
+app.use(helmet({
+    crossOriginResourcePolicy: false, // Permite que o frontend em outra porta acesse os recursos
+})); 
 app.use(apiLimiter); // Apply global rate limiting
 
-// CORS temporarily relaxed for local network testing
-app.use(cors({
-    origin: '*', // Allows any origin (tablet, phone, secondary PCs)
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// CORS fully relaxed for local debugging
+app.use(cors()); 
 
 app.use(express.json()); // Parse JSON bodies
 
@@ -37,6 +35,6 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`🚀 Secure Authentication Backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Secure Authentication Backend running on http://0.0.0.0:${PORT}`);
 });
