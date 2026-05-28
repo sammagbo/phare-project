@@ -55,8 +55,17 @@ export const loginUser = async (email, password) => {
         
         return { success: false, message: errorMessage };
     } catch (error) {
-        console.error("Login request failed:", error);
-        return { success: false, message: "Impossible de joindre le serveur de connexion." };
+        console.error("Login request failed, attempting mock authentication fallback:", error);
+        
+        // Mock fallback for GitHub Pages or offline demonstration
+        if (email === 'test@test.fr' && password === 'Phare@2026') {
+            console.log("Mock authentication successful for offline/GitHub Pages demo.");
+            localStorage.setItem(AUTH_KEY, 'mock_jwt_token_for_demo');
+            localStorage.setItem(REFRESH_KEY, 'mock_refresh_token_for_demo');
+            return { success: true };
+        }
+        
+        return { success: false, message: "Impossible de joindre le serveur de connexion. Mode démo: utilisez test@test.fr / Phare@2026" };
     }
 };
 
