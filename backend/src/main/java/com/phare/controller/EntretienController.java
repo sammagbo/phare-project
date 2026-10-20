@@ -44,7 +44,7 @@ public class EntretienController {
 
     /**
      * Planifie ou met à jour un entretien pour un élève.
-     * Body attendu : { "date": "2026-04-20", "heure": "14:00", "membre": "[nom retiré]" }
+     * Body attendu : { "date": "2026-04-20", "heure": "14:00", "membre": "Membre A" }
      */
     @PutMapping("/{eleveId}")
     public ResponseEntity<Eleve> schedule(
