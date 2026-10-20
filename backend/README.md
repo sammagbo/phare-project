@@ -46,8 +46,8 @@ curl -X POST http://localhost:8080/api/cas \
     "date": "2026-04-10",
     "heure": "10:30",
     "eleves": [
-      { "nom": "Jean Dupont", "type": "VICTIME", "membre": "Sammy K. Magbo" },
-      { "nom": "Marie Martin", "type": "TEMOIN", "membre": "Anne-Marie L." }
+      { "nom": "Jean Dupont", "type": "VICTIME", "membre": "Membre A" },
+      { "nom": "Marie Martin", "type": "TEMOIN", "membre": "Membre B" }
     ]
   }'
 
@@ -60,7 +60,7 @@ curl "http://localhost:8080/api/cas?search=jean"
 # Modifier
 curl -X PUT http://localhost:8080/api/cas/1 \
   -H "Content-Type: application/json" \
-  -d '{"date":"2026-04-10","heure":"14:00","eleves":[{"nom":"Jean Dupont","type":"VICTIME","membre":"Sammy K. Magbo"}]}'
+  -d '{"date":"2026-04-10","heure":"14:00","eleves":[{"nom":"Jean Dupont","type":"VICTIME","membre":"Membre A"}]}'
 
 # Supprimer
 curl -X DELETE http://localhost:8080/api/cas/1

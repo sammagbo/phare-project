@@ -44,13 +44,4 @@ public class MembreService {
         }
         return false;
     }
-
-    /**
-     * Initialise la liste si la table est vide (premiers lancement).
-     */
-    public void seedIfEmpty(List<String> defaultNames) {
-        if (membreRepository.count() == 0) {
-            defaultNames.forEach(name -> membreRepository.save(new Membre(name)));
-        }
-    }
 }

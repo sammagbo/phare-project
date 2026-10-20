@@ -5,12 +5,8 @@ import { fetchApi, API_URL } from './api.js';
 export const STORAGE_KEY = 'phare_cases';
 export const MEMBERS_KEY = 'phare_members';
 
-const INITIAL_MEMBERS = [
-  '[nom retiré]', '[nom retiré]', '[nom retiré]', '[nom retiré]',
-  '[nom retiré]', '[nom retiré]', '[nom retiré]', '[nom retiré]',
-  '[nom retiré]', '[nom retiré]', '[nom retiré]',
-  '[nom retiré]', '[nom retiré]', '[nom retiré]'
-];
+// L'équipe pHARe se saisit dans la fenêtre Équipe : aucun nom dans le code.
+const INITIAL_MEMBERS = [];
 
 /**
  * State object representing the "truth"
