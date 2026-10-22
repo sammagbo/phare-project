@@ -1,7 +1,8 @@
 const db = require('../db/database');
 
 const TokenModel = {
-    saveRefreshToken: (token, userId, expiresAt) => {
+    saveRefreshToken: async (token, userId, expiresAt) => {
+        await db.ready;
         return new Promise((resolve, reject) => {
             db.run(
                 `INSERT INTO refresh_tokens (token, user_id, expires_at) VALUES (?, ?, ?)`,
@@ -14,7 +15,8 @@ const TokenModel = {
         });
     },
 
-    findRefreshToken: (token) => {
+    findRefreshToken: async (token) => {
+        await db.ready;
         return new Promise((resolve, reject) => {
             db.get(`SELECT * FROM refresh_tokens WHERE token = ?`, [token], (err, row) => {
                 if (err) reject(err);
@@ -23,7 +25,8 @@ const TokenModel = {
         });
     },
 
-    deleteRefreshToken: (token) => {
+    deleteRefreshToken: async (token) => {
+        await db.ready;
         return new Promise((resolve, reject) => {
             db.run(`DELETE FROM refresh_tokens WHERE token = ?`, [token], function (err) {
                 if (err) reject(err);
@@ -32,7 +35,8 @@ const TokenModel = {
         });
     },
 
-    deleteAllUserTokens: (userId) => {
+    deleteAllUserTokens: async (userId) => {
+        await db.ready;
         return new Promise((resolve, reject) => {
             db.run(`DELETE FROM refresh_tokens WHERE user_id = ?`, [userId], function (err) {
                 if (err) reject(err);

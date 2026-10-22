@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const { verifyAccessToken } = require('../token');
 
 const requireAuth = (req, res, next) => {
     // Look for the Authorization header
@@ -11,8 +11,8 @@ const requireAuth = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+        // Verify token: the signature (HS256 only), the expiry, the issuer and the audience of the contract
+        const decoded = verifyAccessToken(token);
         
         // Attach user info to the request for the controller to use
         req.user = decoded;

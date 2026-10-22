@@ -1,14 +1,21 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.resolve(__dirname, '../../database.sqlite');
+// The SQLite file comes from PHARE_DB_PATH; by default it stays backend-node/database.sqlite
+const dbPath = process.env.PHARE_DB_PATH
+    ? path.resolve(process.env.PHARE_DB_PATH)
+    : path.resolve(__dirname, '../../database.sqlite');
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error connecting to SQLite database:', err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-        // Initialize schema
+    }
+});
+
+// The schema, created before any query runs (the models wait for it): the server and the account script
+// (scripts/create-user.js) also work on a brand-new database, without the tables yet.
+db.ready = new Promise((resolve, reject) => {
+    db.serialize(() => {
         db.run(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -17,11 +24,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `, (err) => {
-            if (err) {
-                console.error("Failed to create users table:", err);
-            } else {
-                console.log("Users table ready.");
-            }
+            if (err) reject(err);
         });
 
         db.run(`
@@ -34,13 +37,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `, (err) => {
-            if (err) {
-                console.error("Failed to create refresh_tokens table:", err);
-            } else {
-                console.log("Refresh tokens table ready.");
-            }
+            if (err) reject(err);
+            else resolve();
         });
-    }
+    });
 });
 
 module.exports = db;
