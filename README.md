@@ -74,7 +74,7 @@ export JWT_SECRET="$(openssl rand -base64 48)"
 #### Service d'authentification (port 3000)
 ```bash
 cd backend-node
-npm install
+npm ci
 node server.js
 ```
 

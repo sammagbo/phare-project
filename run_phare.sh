@@ -40,7 +40,7 @@ echo -e "${YELLOW}[1/3] Iniciando Serviço de Autenticação (Node.js)...${NC}"
 cd backend-node
 if [ ! -d "node_modules" ]; then
     echo "Instalando dependências do Node..."
-    npm install --silent
+    npm ci --silent
 fi
 node server.js > /dev/null 2>&1 &
 NODE_PID=$!
