@@ -50,9 +50,10 @@ phare-project/
 ### Auth (`/api/auth`)
 | Méthode | Route | Description |
 |---------|-------|-------------|
-| `POST` | `/api/auth/login` | Connexion (JWT) |
-| `POST` | `/api/auth/refresh` | Renouveler le token |
-| `POST` | `/api/auth/logout` | Déconnexion |
+| `POST` | `/api/auth/login` | Connexion : le token d'accès dans la réponse, la session dans le cookie `phare_refresh` |
+| `POST` | `/api/auth/refresh` | Un nouveau token d'accès, avec le cookie (corps JSON) |
+| `POST` | `/api/auth/logout` | Déconnexion, avec le cookie (corps JSON) : `204` |
+| `GET` | `/api/auth/me` | Le compte du token d'accès |
 
 ## Lancement
 
@@ -105,6 +106,33 @@ L'API (`backend`) l'exige sur tous ses endpoints et répond `401` sans token val
 - **les vérifications :** l'API contrôle la signature (HS256 seulement), la validité (`exp` et `nbf`, avec une marge de
   60 s), l'émetteur et le public ; le `requireAuth` du service d'authentification contrôle les mêmes.
 
+Sans token, la réponse est `401` avec `WWW-Authenticate: Bearer` ; avec un token invalide ou expiré, `401` avec
+`WWW-Authenticate: Bearer error="invalid_token"` (RFC 6750). Le frontend garde le token d'accès **en mémoire
+seulement**, jamais dans le `localStorage`, et ne le renouvelle que sur un `401`, une seule fois.
+
+### La session
+- **Le cookie.** La session tient dans le cookie `phare_refresh` : `HttpOnly` (aucun script ne le lit), `SameSite=Strict`,
+  `Path=/api/auth`, valable 7 jours. Il n'est `Secure` que si la requête arrive en HTTPS : en http, sur `localhost` et
+  sur le réseau local de l'établissement, le navigateur refuserait un cookie `Secure`, et personne ne resterait
+  connecté. Derrière un HTTPS, il devient `Secure` de lui-même.
+- **À l'ouverture d'une page,** le frontend demande un token d'accès au service, avec le cookie. Sans session valide,
+  il efface les données pHARe du navigateur et revient à la connexion ; si le service d'authentification ne répond
+  pas, il revient à la connexion avec « Serveur de connexion injoignable. Réessayez plus tard. », sans afficher les
+  données gardées. Il n'y a pas de connexion de démonstration.
+- **La rotation.** Chaque renouvellement remplace le refresh token : l'ancien meurt, le nouveau part dans le cookie. La
+  base ne garde que son empreinte SHA-256, jamais le token. Un token déjà remplacé qui revient met fin à toute la
+  session (chaque connexion ouvre une session à part). Pendant les 30 s qui suivent le remplacement, l'ancien token
+  sert encore une fois, pour un token d'accès seulement : c'est le cas de deux onglets qui se renouvellent ensemble.
+- **La déconnexion** prévient toujours le service, qui met fin à la session et efface le cookie, puis le frontend
+  efface du `localStorage` les cas, les membres, les réunions et les anciennes clés de tokens.
+- **Le CSRF.** Le renouvellement et la déconnexion n'acceptent qu'un corps `application/json` (`415` sinon). Avec
+  `SameSite=Strict` et la liste des origines, un formulaire d'un autre site ne peut pas les déclencher.
+- **Les limites, par adresse IP :** 10 connexions échouées en 15 minutes, puis `429` (une connexion réussie ne compte
+  pas) ; 60 renouvellements en 15 minutes ; 100 requêtes en 15 minutes en tout, sur le service d'authentification.
+- **La mise à jour.** Les versions précédentes gardaient le refresh token en clair, dans le `localStorage` et dans la
+  base. Au premier démarrage de cette version, l'ancienne table est supprimée : les sessions ouvertes se terminent, et
+  chacun se reconnecte une fois.
+
 ### Le secret
 `JWT_SECRET` doit faire 32 octets ou plus. Sans lui, ou plus court, **aucun des deux services ne démarre**, avec un
 message clair : il n'existe de secret de secours nulle part. `./run_phare.sh` en génère un pour la session s'il n'est
@@ -147,7 +175,11 @@ Membre
 
 ## Mode Hors-Ligne
 
-Le frontend fonctionne en mode offline grâce à :
+Le mode hors-ligne ne vaut qu'avec une **session valide** et l'API Java injoignable : la page s'ouvre, le service
+d'authentification confirme la session, et c'est seulement l'API qui ne répond pas. Sans session, ou sans service
+d'authentification, la page revient à la connexion et n'affiche rien de ce qui est gardé.
+
+Dans ce cas, le frontend fonctionne grâce à :
 - **localStorage** comme fallback pour les cas et les entretiens
 - **Service Worker** pour le cache des assets
 - Indicateur visuel `🟢 API connectée` / `🔴 Mode hors-ligne`
