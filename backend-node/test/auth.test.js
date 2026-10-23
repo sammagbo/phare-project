@@ -283,3 +283,20 @@ test('on start, the old table with the tokens in clear is dropped and replaced',
     assert.ok(columns.includes('token_hash'));
     assert.deepEqual(rows, []);
 });
+
+// Last: it leaves the login limit of this IP spent
+test('login: the 11th failed attempt gets 429, and a login that succeeds does not count', async () => {
+    const wrong = () => fetch(`${base}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: EMAIL, password: 'Mauvais-2026!' }),
+    });
+    for (let attempt = 1; attempt <= 9; attempt += 1) {
+        assert.equal((await wrong()).status, 401, `failed attempt ${attempt}`);
+    }
+    assert.equal((await login()).status, 200, 'a good login in the middle');
+    assert.equal((await wrong()).status, 401, 'the 10th failed attempt: the good login did not count');
+    const blocked = await wrong();
+    assert.equal(blocked.status, 429);
+    assert.match((await blocked.json()).error, /Too many failed login attempts/);
+});
