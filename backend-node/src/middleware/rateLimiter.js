@@ -11,8 +11,9 @@ const apiLimiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-// The login: 10 failed attempts per IP in 15 minutes, then 429. A login that succeeds does not count, so a school's
-// staff behind one address can still sign in while somebody guesses passwords.
+// The login: 10 failed attempts per IP in 15 minutes, then 429. A login that succeeds does not count, so the staff of
+// a school behind one address do not use up the limit by signing in. After 10 failures, though, every login from
+// that address waits for the end of the window, the right password included.
 const loginLimiter = rateLimit({
     windowMs: WINDOW_MS,
     max: 10,

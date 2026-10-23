@@ -114,7 +114,8 @@ seulement**, jamais dans le `localStorage`, et ne le renouvelle que sur un `401`
 - **Le cookie.** La session tient dans le cookie `phare_refresh` : `HttpOnly` (aucun script ne le lit), `SameSite=Strict`,
   `Path=/api/auth`, valable 7 jours. Il n'est `Secure` que si la requête arrive en HTTPS : en http, sur `localhost` et
   sur le réseau local de l'établissement, le navigateur refuserait un cookie `Secure`, et personne ne resterait
-  connecté. Derrière un HTTPS, il devient `Secure` de lui-même.
+  connecté. Servi directement en HTTPS, il devient `Secure` de lui-même ; derrière un proxy HTTPS, il faut d'abord
+  régler le `trust proxy` d'Express, sans quoi le service ne voit pas que la requête est arrivée en HTTPS.
 - **À l'ouverture d'une page,** le frontend demande un token d'accès au service, avec le cookie. Sans session valide,
   il efface les données pHARe du navigateur et revient à la connexion ; si le service d'authentification ne répond
   pas, il revient à la connexion avec « Serveur de connexion injoignable. Réessayez plus tard. », sans afficher les
@@ -127,8 +128,9 @@ seulement**, jamais dans le `localStorage`, et ne le renouvelle que sur un `401`
   efface du `localStorage` les cas, les membres, les réunions et les anciennes clés de tokens.
 - **Le CSRF.** Le renouvellement et la déconnexion n'acceptent qu'un corps `application/json` (`415` sinon). Avec
   `SameSite=Strict` et la liste des origines, un formulaire d'un autre site ne peut pas les déclencher.
-- **Les limites, par adresse IP :** 10 connexions échouées en 15 minutes, puis `429` (une connexion réussie ne compte
-  pas) ; 60 renouvellements en 15 minutes ; 100 requêtes en 15 minutes en tout, sur le service d'authentification.
+- **Les limites, par adresse IP :** 10 connexions échouées en 15 minutes, puis `429` pour toute connexion depuis
+  cette adresse, bon mot de passe compris, jusqu'à la fin des 15 minutes (une connexion réussie ne compte pas) ;
+  60 renouvellements en 15 minutes ; 100 requêtes en 15 minutes en tout, sur le service d'authentification.
 - **La mise à jour.** Les versions précédentes gardaient le refresh token en clair, dans le `localStorage` et dans la
   base. Au premier démarrage de cette version, l'ancienne table est supprimée : les sessions ouvertes se terminent, et
   chacun se reconnecte une fois.
