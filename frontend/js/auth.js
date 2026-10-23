@@ -1,184 +1,169 @@
 /**
  * auth.js
- * Core authentication logic for pHARe project using JWT & Refresh Tokens.
+ * The session of the pHARe frontend.
+ *
+ * - The refresh token lives only in the `phare_refresh` cookie, HttpOnly: no script reads it, this one included.
+ * - The access token (15 min) lives only in memory, in this module: never in localStorage. Each protected page asks for
+ *   one when it opens, through the refresh, with the cookie.
+ * - Without a session the page goes to the login; the stored data is never shown before the session is confirmed.
  */
 
-const AUTH_KEY = 'phare_jwt_token';
-const REFRESH_KEY = 'phare_refresh_token';
 // Set the IP dynamically so tablets point back to the PC instead of themselves
 const HOSTNAME = window.location.hostname || 'localhost';
-const AUTH_API_URL = `http://${HOSTNAME}:3000/api/auth`; 
+const AUTH_API_URL = `http://${HOSTNAME}:3000/api/auth`;
 
-// Mutex to prevent multiple simultaneous refresh calls
-let refreshingPromise = null;
+export const UNREACHABLE_MESSAGE = 'Serveur de connexion injoignable. Réessayez plus tard.';
+const UNREACHABLE_PARAM = 'injoignable';
+
+// The keys of an older version, which kept both tokens in localStorage: they go as soon as a page loads
+const LEGACY_TOKEN_KEYS = ['phare_jwt_token', 'phare_refresh_token'];
+LEGACY_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+
+let accessToken = null;
+let refreshing = null; // one refresh at a time per page
+let session = null; // the session check of the page, done once
+
+const isLoginPage = () => window.location.pathname.endsWith('login.html');
+
+/** POST to the auth service with the session cookie and a JSON body (the service refuses any other type). */
+const postAuth = (route, body = {}) => fetch(`${AUTH_API_URL}/${route}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+});
+
+/** Removes every pHARe entry from localStorage: the cases, the members, the meetings and the old token keys. */
+export const clearLocalData = () => {
+    Object.keys(localStorage)
+        .filter((key) => key.startsWith('phare_'))
+        .forEach((key) => localStorage.removeItem(key));
+};
+
+/** Leaves the page for the login: with the message when the auth service is unreachable. Never resolves. */
+const goToLogin = (unreachable) => {
+    window.location.replace(unreachable ? `login.html?erreur=${UNREACHABLE_PARAM}` : 'login.html');
+    return new Promise(() => {});
+};
 
 /**
- * Log in the user by calling the backend API.
- * @param {string} email 
- * @param {string} password 
+ * Log in the user by calling the backend API. The service sets the session cookie; the access token stays in memory.
+ * @param {string} email
+ * @param {string} password
  * @returns {Promise<{success: boolean, message?: string}>} Authentication result.
  */
 export const loginUser = async (email, password) => {
+    let response;
     try {
-        const response = await fetch(`${AUTH_API_URL}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            const token = data.token;
-            const refreshToken = data.refreshToken;
-
-            if (token && refreshToken) {
-                localStorage.setItem(AUTH_KEY, token);
-                localStorage.setItem(REFRESH_KEY, refreshToken);
-                return { success: true };
-            } else {
-                console.error("Authentication successful, but tokens are missing.");
-                return { success: false, message: "Erreur serveur: tokens invalides." };
-            }
-        }
-        
-        let errorMessage = "Identifiants incorrects ou erreur serveur.";
-        try {
-            const errorData = await response.json();
-            if (errorData && errorData.error) {
-                errorMessage = errorData.error;
-            } else if (errorData && errorData.errors) {
-                errorMessage = errorData.errors.map(e => e.msg).join(', ');
-            }
-        } catch (e) {
-            // Response parsing failed
-        }
-        
-        return { success: false, message: errorMessage };
+        response = await postAuth('login', { email, password });
     } catch (error) {
-        console.error("Login request failed, attempting mock authentication fallback:", error);
-        
-        // Mock fallback for GitHub Pages or offline demonstration
-        if (email === 'test@test.fr' && password === 'Phare@2026') {
-            console.log("Mock authentication successful for offline/GitHub Pages demo.");
-            localStorage.setItem(AUTH_KEY, 'mock_jwt_token_for_demo');
-            localStorage.setItem(REFRESH_KEY, 'mock_refresh_token_for_demo');
+        console.warn('Login request failed: the auth service is unreachable.', error);
+        return { success: false, message: UNREACHABLE_MESSAGE };
+    }
+
+    if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+            accessToken = data.token;
             return { success: true };
         }
-        
-        return { success: false, message: "Impossible de joindre le serveur de connexion. Mode démo: utilisez test@test.fr / Phare@2026" };
+        console.error('Authentication successful, but the access token is missing.');
+        return { success: false, message: 'Erreur serveur : réponse invalide.' };
     }
-};
 
-/**
- * Remove session tokens and redirect to login.
- */
-export const logoutUser = async () => {
-    // Attempt to notify server to revoke refresh token
-    const refreshToken = localStorage.getItem(REFRESH_KEY);
-    const token = localStorage.getItem(AUTH_KEY);
-    
-    if (refreshToken && token) {
-        try {
-            await fetch(`${AUTH_API_URL}/logout`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ refreshToken })
-            });
-        } catch (e) {
-            console.warn("Could not reach backend to revoke token during logout.");
+    let errorMessage = 'Identifiants incorrects ou erreur serveur.';
+    try {
+        const errorData = await response.json();
+        if (errorData && errorData.error) {
+            errorMessage = errorData.error;
+        } else if (errorData && errorData.errors) {
+            errorMessage = errorData.errors.map((e) => e.msg).join(', ');
         }
+    } catch (e) {
+        // Response parsing failed
     }
-
-    localStorage.removeItem(AUTH_KEY);
-    localStorage.removeItem(REFRESH_KEY);
-    
-    const currentPath = window.location.pathname;
-    if (!currentPath.endsWith('login.html')) {
-        window.location.href = 'login.html';
-    }
+    return { success: false, message: errorMessage };
 };
 
 /**
- * Attempts to silently refresh the access token using the refresh token.
- * Mutex-protected to avoid race conditions on mobile.
- * @returns {Promise<string|null>} The new token if successful, null if failed.
+ * Asks the auth service for a new access token with the session cookie. One request at a time per page.
+ * @returns {Promise<{token?: string, unreachable?: boolean}>} the token, or why there is none.
  */
-export const refreshAccessToken = async () => {
-    // If a refresh is already in progress, return the existing promise
-    if (refreshingPromise) {
-        return refreshingPromise;
-    }
-
-    const refreshToken = localStorage.getItem(REFRESH_KEY);
-    if (!refreshToken) return null;
-
-    refreshingPromise = (async () => {
-        try {
-            const response = await fetch(`${AUTH_API_URL}/refresh`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.token) {
-                    localStorage.setItem(AUTH_KEY, data.token);
-                    return data.token;
+export const refreshAccessToken = () => {
+    if (!refreshing) {
+        refreshing = (async () => {
+            try {
+                const response = await postAuth('refresh');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.token) {
+                        accessToken = data.token;
+                        return { token: data.token };
+                    }
                 }
+                accessToken = null;
+                return {};
+            } catch (err) {
+                console.warn(`Network error reaching auth server at ${AUTH_API_URL}:`, err);
+                return { unreachable: true };
+            } finally {
+                refreshing = null;
             }
-            
-            // If refresh fails, tokens are truly dead.
-            console.error("Session expired or refresh token invalid. Logging out.");
-            logoutUser();
-            return null;
-        } catch (err) {
-            console.error(`Network error reaching auth server at ${AUTH_API_URL}:`, err);
-            return null; 
-        } finally {
-            refreshingPromise = null;
-        }
-    })();
-
-    return refreshingPromise;
+        })();
+    }
+    return refreshing;
 };
 
 /**
- * Check if the user is authenticated.
+ * Ends the page's session after a failed refresh: on a 401 the stored data goes, then the login; when the auth
+ * service is unreachable, the login with the message. Never resolves.
+ */
+export const endSession = ({ unreachable } = {}) => {
+    accessToken = null;
+    if (!unreachable) clearLocalData();
+    return goToLogin(unreachable);
+};
+
+/**
+ * The session check of a protected page, run when it opens: a refresh with the cookie. The page stays hidden until it
+ * answers, so nothing stored shows up without a session. Resolves when the session is valid; otherwise leaves for the
+ * login and never resolves.
  */
 export const checkAuth = () => {
-    const token = localStorage.getItem(AUTH_KEY);
-    const refreshToken = localStorage.getItem(REFRESH_KEY);
-    const isLoginPage = window.location.pathname.endsWith('login.html');
-
-    if (!token && !refreshToken) {
-        if (!isLoginPage) {
-            window.location.href = 'login.html';
-        }
-        return false;
+    if (isLoginPage()) return Promise.resolve(false);
+    if (!session) {
+        document.documentElement.style.visibility = 'hidden';
+        session = refreshAccessToken().then((result) => {
+            if (!result.token) return endSession(result);
+            document.documentElement.style.visibility = '';
+            return true;
+        });
     }
-
-    if (isLoginPage) {
-        window.location.href = 'phare-gestion-harcelement.html';
-    }
-
-    return true;
+    return session;
 };
 
-export const getToken = () => localStorage.getItem(AUTH_KEY);
+/** The access token of the page, once the session is confirmed. */
+export const getAccessToken = async () => {
+    await checkAuth();
+    return accessToken;
+};
 
 /**
- * Mobile/iPad optimization: Sync session when the app is foregrounded.
+ * Logs out: always tells the auth service, which revokes the session and deletes the cookie, even without an access
+ * token; then removes the pHARe data from localStorage and goes to the login.
  */
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        const token = getToken();
-        if (token) {
-            console.log("App foregrounded. Verifying session integrity...");
-            // Optional: call a lightweight 'me' or 'status' endpoint here
-        }
+export const logoutUser = async () => {
+    try {
+        await postAuth('logout');
+    } catch (e) {
+        console.warn('Could not reach the auth service to revoke the session during logout.');
     }
-});
+    accessToken = null;
+    clearLocalData();
+    window.location.href = 'login.html';
+};
+
+/** The login page shows why the last page sent it there, when the auth service was unreachable. */
+export const loginNotice = () => (
+    new URLSearchParams(window.location.search).get('erreur') === UNREACHABLE_PARAM ? UNREACHABLE_MESSAGE : null
+);

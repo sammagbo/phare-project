@@ -1,4 +1,5 @@
-const CACHE_NAME = 'phare-v1';
+// A new name for each version of the cached files: the installed apps then drop the old cache and its old auth.js
+const CACHE_NAME = 'phare-v2';
 const ASSETS = [
   './',
   './login.html',
