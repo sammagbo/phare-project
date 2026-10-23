@@ -33,9 +33,11 @@ app.use(helmet({
 }));
 app.use(apiLimiter); // Apply global rate limiting
 
-// CORS: only the frontend's origins; any other origin gets no Access-Control-Allow-Origin
+// CORS: only the frontend's origins; any other origin gets no Access-Control-Allow-Origin. With credentials, so the
+// frontend's login, refresh and logout carry the session cookie.
 app.use(cors({
     origin: ALLOWED_ORIGINS,
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
 }));
