@@ -1,6 +1,8 @@
 const { body, validationResult } = require('express-validator');
 
-const validateRegistration = [
+// The rules of a new account (a valid email; a password of 8 characters or more, with an upper and a lower case letter,
+// a number and a symbol), applied by scripts/create-user.js: accounts are created from the server's terminal only.
+const newAccountRules = [
     body('email')
         .isEmail()
         .withMessage('Must be a valid email address')
@@ -16,13 +18,6 @@ const validateRegistration = [
         .withMessage('Password must contain at least one number')
         .matches(/[\W_]/)
         .withMessage('Password must contain at least one special character'),
-    (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        next();
-    }
 ];
 
 const validateLogin = [
@@ -38,6 +33,6 @@ const validateLogin = [
 ];
 
 module.exports = {
-    validateRegistration,
+    newAccountRules,
     validateLogin
 };

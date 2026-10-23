@@ -1,33 +1,11 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const UserModel = require('../models/userModel');
 const TokenModel = require('../models/tokenModel');
+const { signAccessToken } = require('../token');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'fallback_refresh_secret';
-
+// There is no sign-up: accounts are created by the administrator, from the server's terminal (scripts/create-user.js).
 const AuthController = {
-    register: async (req, res) => {
-        try {
-            const { email, password } = req.body;
-            
-            const existingUser = await UserModel.findByEmail(email);
-            if (existingUser) {
-                return res.status(409).json({ error: 'User with this email already exists' });
-            }
-
-            const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
-            const newUserId = await UserModel.create(email, hashedPassword);
-
-            return res.status(201).json({ message: 'User registered successfully', userId: newUserId });
-        } catch (err) {
-            console.error("Registration error:", err);
-            return res.status(500).json({ error: 'Internal server error' });
-        }
-    },
-
     login: async (req, res) => {
         try {
             const { email, password } = req.body;
@@ -43,13 +21,8 @@ const AuthController = {
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
 
-            const payload = {
-                id: user.id,
-                email: user.email
-            };
-
-            // Sign short-lived access token (e.g., 15 minutes)
-            const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+            // Sign the short-lived access token of the contract (15 minutes), for the pHARe API
+            const token = signAccessToken(user);
 
             // Generate opaque refresh token
             const refreshToken = uuidv4();
@@ -95,8 +68,7 @@ const AuthController = {
             }
             
             // Issue new access token
-            const payload = { id: user.id, email: user.email };
-            const newAccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+            const newAccessToken = signAccessToken(user);
             
             return res.status(200).json({ token: newAccessToken });
             
@@ -122,7 +94,7 @@ const AuthController = {
 
     getMe: async (req, res) => {
         try {
-            const userId = req.user.id;
+            const userId = Number(req.user.sub);
             const user = await UserModel.findById(userId);
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });

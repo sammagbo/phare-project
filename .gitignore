@@ -3,6 +3,8 @@
 # ══════════════════════════════════════════
 node_modules/
 package-lock.json
+# The auth service's lockfile is versioned: npm ci installs exactly what it lists
+!backend-node/package-lock.json
 
 # ══════════════════════════════════════════
 # Java / Maven (backend)

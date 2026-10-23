@@ -23,12 +23,24 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
+# Segredo compartilhado entre o serviço de login e a API (32 bytes ou mais): os dois se recusam a subir sem ele.
+# Sem JWT_SECRET no ambiente, um segredo novo é gerado para esta rodada, e os tokens de uma rodada não valem na seguinte.
+if [ -z "${JWT_SECRET:-}" ]; then
+    JWT_SECRET="$(openssl rand -base64 48)"
+    echo -e "${YELLOW}🔐 JWT_SECRET gerado para esta rodada (defina JWT_SECRET para manter as sessões entre rodadas).${NC}"
+fi
+export JWT_SECRET
+
+# As origens do frontend que o CORS dos dois serviços aceita (separadas por vírgula; na rede local, acrescente
+# http://<IP do PC>:8000)
+export PHARE_ALLOWED_ORIGINS="${PHARE_ALLOWED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}"
+
 # 1. Iniciar Auth Service (Node.js) - Porta 3000
 echo -e "${YELLOW}[1/3] Iniciando Serviço de Autenticação (Node.js)...${NC}"
 cd backend-node
 if [ ! -d "node_modules" ]; then
     echo "Instalando dependências do Node..."
-    npm install --silent
+    npm ci --silent
 fi
 node server.js > /dev/null 2>&1 &
 NODE_PID=$!
@@ -53,6 +65,10 @@ echo -e "----------------------------------------------------"
 echo -e "🔑 Auth: http://localhost:3000"
 echo -e "📡 API:  http://localhost:8080"
 echo -e "🌐 App:  http://localhost:8000/login.html"
+echo -e "----------------------------------------------------"
+echo -e "👤 Não há cadastro pelo site. Para criar uma conta (a primeira também), noutro terminal:"
+echo -e "   cd backend-node && read -rs PHARE_PASSWORD && export PHARE_PASSWORD"
+echo -e "   node scripts/create-user.js voce@exemplo.fr && unset PHARE_PASSWORD"
 echo -e "----------------------------------------------------"
 echo -e "${BLUE}Pressione CTRL+C para encerrar todos os servidores.${NC}"
 
