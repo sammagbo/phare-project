@@ -91,7 +91,26 @@ test('requireAuth accepts the login token and refuses a token for another audien
         algorithm: 'HS256', issuer: 'phare-auth', audience: 'another-api', subject: String(userId), expiresIn: '15m',
     });
     const refused = await fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${other}` } });
-    assert.equal(refused.status, 403);
+    assert.equal(refused.status, 401);
+    assert.equal(refused.headers.get('www-authenticate'), 'Bearer error="invalid_token"');
+});
+
+test('requireAuth: 401 with the Bearer challenge without a token, and invalid_token for a bad or expired one', async () => {
+    const missing = await fetch(`${base}/api/auth/me`);
+    assert.equal(missing.status, 401);
+    assert.equal(missing.headers.get('www-authenticate'), 'Bearer');
+
+    const garbage = await fetch(`${base}/api/auth/me`, { headers: { Authorization: 'Bearer not-a-token' } });
+    assert.equal(garbage.status, 401);
+    assert.equal(garbage.headers.get('www-authenticate'), 'Bearer error="invalid_token"');
+
+    const now = Math.floor(Date.now() / 1000);
+    const expired = jwt.sign({ email: EMAIL, iat: now - 25 * 60, exp: now - 10 * 60 }, SECRET, {
+        algorithm: 'HS256', issuer: 'phare-auth', audience: 'phare-api', subject: String(userId),
+    });
+    const late = await fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${expired}` } });
+    assert.equal(late.status, 401);
+    assert.equal(late.headers.get('www-authenticate'), 'Bearer error="invalid_token"');
 });
 
 test('there is no sign-up route', async () => {
