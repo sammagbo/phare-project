@@ -154,4 +154,4 @@ Le frontend fonctionne en mode offline grâce à :
 
 ## Licence
 
-© 2026 Projet pHARe — Éducation Nationale
+© 2026 Sammy K. Magbo. pHARe est le programme de lutte contre le harcèlement du ministère de l'Éducation nationale ; cet outil est un projet indépendant, sans lien officiel avec le ministère.
