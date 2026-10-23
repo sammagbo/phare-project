@@ -240,3 +240,52 @@ header p { color: var(--text-muted); font-size: 1.1rem; }
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.error { background: var(--accent); }
+
+/* ── Components the pages and ui.js still use (their rules lived in the pages' <style> before the redesign) ── */
+
+/* API status badge, next to the title: the size and shape come from .badge */
+.api-badge { display: inline-block; margin-top: 0.5rem; }
+.api-badge.online { background: var(--primary-light); color: var(--primary); }
+.api-badge.offline { background: var(--accent-light); color: var(--accent); }
+
+/* Student cards, one per student of the case being written */
+.student-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem;
+}
+.student-card .field-group { flex: 1; min-width: 150px; }
+.student-card.error { border-color: var(--accent); background: var(--accent-light); }
+.student-card input.invalid,
+.student-card select.invalid { border-color: var(--accent); background: var(--accent-light); }
+.student-card select[data-field="type"] { font-weight: 500; }
+.student-card[data-type="victime"] { border-left: 4px solid var(--victime); }
+.student-card[data-type="temoin"] { border-left: 4px solid var(--temoin); }
+.student-card[data-type="intimidateur"] { border-left: 4px solid var(--intimidateur); }
+
+/* Validation messages: hidden until the form marks them .visible */
+.field-error { font-size: 0.75rem; color: var(--accent); font-weight: 500; margin-top: 0.15rem; display: none; }
+.field-error.visible { display: block; }
+
+/* The student list before the first student */
+.empty-state {
+  text-align: center; padding: 2rem 1rem;
+  color: var(--text-muted); font-size: 0.95rem;
+  border: 2px dashed var(--card-border); border-radius: var(--radius-md);
+  background: var(--glass-bg);
+}
+
+/* Modals (team, meeting actions): hidden until .active */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(8px);
+}
+.modal-overlay.active { display: flex; }
+
+@media print {
+  .api-badge, .empty-state, .modal-overlay { display: none !important; }
+}
