@@ -75,7 +75,8 @@ log(`capture of the pHARe demo: ${WEB}, ${VIEWPORT.width}x${VIEWPORT.height} at 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 const manifestFile = new URL('manifest.json', OUT);
-const manifest = { viewport: VIEWPORT, scale: SCALE, shots: {} };
+// the names of the data go with the captures: the video checks that no caption nor chip quotes one
+const manifest = { viewport: VIEWPORT, scale: SCALE, people: [...people].sort(), shots: {} };
 
 // The form controls (the jj/mm/aaaa of an empty date) follow Chrome's own language, not the context's locale; on Linux,
 // Chrome takes it from LANGUAGE and LANG, and ignores --lang.
@@ -263,7 +264,9 @@ async function textLines(page) {
                   if (hidden(el)) continue;
                   let text = el.tagName === 'SELECT' ? el.options[el.selectedIndex]?.text ?? '' : el.value || el.placeholder || '';
                   if (el.type === 'password' && el.value) text = '•'.repeat(el.value.length);
-                  if (el.type === 'date' || el.type === 'time') text = el.value ? el.value : '--';
+                  // the date and time fields show their own format, and a placeholder when empty (Chrome in French)
+                  if (el.type === 'date') text = el.value ? el.value.split('-').reverse().join('/') : 'jj/mm/aaaa';
+                  if (el.type === 'time') text = el.value || '--:--';
                   if (!text.trim()) continue;
                   const s = getComputedStyle(el);
                   const r = el.getBoundingClientRect();
@@ -458,7 +461,7 @@ if (!entry || entry.date) throw new Error('agendar: the intervenant and the time
 await shot(page, 'agendar', async (p) => ({
       card: await box(p, () => document.querySelector('#cases-container .case-card')),
       row: await box(p, (nom) => [...document.querySelectorAll('#cases-container .case-card:first-child .row-student')].find((r) => r.innerText.includes(nom)), schedule.nom),
-}));
+}), { fullPage: true });
 
 await row.locator('input.f-date').fill(schedule.date);
 await row.locator('input.f-date').dispatchEvent('change');

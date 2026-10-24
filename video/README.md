@@ -49,3 +49,30 @@ node contact-sheet.mjs ../public/phare
 - **Les sorties** vont dans `video/public/phare/` : les captures à 2x, `manifest.json` (les cadres, en px CSS, où la
   vidéo zoome) et `text.json` (les lignes de texte visibles, pour vérifier les bords). Le journal, avec l'heure de
   l'horloge de démo, va dans `~/phare-captura.log`. Les captures et les vidéos restent hors de git.
+
+## La vidéo
+
+```bash
+cd video && npm ci
+npx remotion compositions src/index.ts     # PhareDemo, 1600x1000, 30 fps
+npm run render:demo                        # out/phare-demo.mp4, .webm et -poster.webp
+```
+
+La composition `PhareDemo` (`src/PhareDemo.tsx`) reprend le moteur de la vidéo du MeetingManager
+(`MeetingManagerDemo.tsx`, commit `05d4963` de `sammagbo/Controle-de-tempo-e-Assistencia`) : la bande noire de 140 px
+avec le sous-titre en français à gauche et la pastille de l'heure à droite, la caméra qui zoome dans les captures, et
+la boucle (la dernière image est la première). Elle lit `public/phare/manifest.json` et `public/phare/text.json`, et
+`dayPlan()` arrête le rendu si une vue sort des règles :
+
+- le texte dont parle le sous-titre à 30 px ou plus dans l'image, les étiquettes à 24 px ou plus ;
+- chaque vue immobile 2,5 s ou plus, des panoramiques de 60 px CSS par seconde au plus, des transitions de 15 à 24
+  images ;
+- des sous-titres de 42 caractères au plus, sans toucher la pastille, et aucun nom des données de démo dans un
+  sous-titre ni dans une pastille ;
+- des bords nets : aucun texte coupé par le haut ou par la bande, ni à moins de 8 px d'eux, et aucun mot coupé sur
+  les côtés (les formes peuvent l'être) ;
+- entre 40 et 60 s, et la dernière image identique à la première.
+
+Sept scènes, en 42,5 s : la connexion, le cas du 13/10 et ses trois élèves, l'historique, la recherche, l'équipe, un
+entretien planifié à l'écran et le planning. L'affiche est l'image 1161, le milieu du planning. Les vidéos restent dans
+`out/`, hors de git.
