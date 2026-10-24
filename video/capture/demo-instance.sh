@@ -15,7 +15,8 @@
 # - The frontend: python3 -m http.server on 127.0.0.2:8000, serving frontend/ as it is.
 # - The account: demo@example.com, created by backend-node/scripts/create-user.js, with a password generated now and
 #   kept only in PHARE_DEMO_DIR/demo-password (0600). It is never printed.
-# The ports must be free: this script stops nothing it did not start. PHARE_DEMO_DIR is /tmp/phare-demo by default.
+# The ports must be free: this script stops nothing it did not start. PHARE_DEMO_DIR is /tmp/phare-demo by default; it
+# must be inside /tmp, since down deletes it.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -50,6 +51,11 @@ stop_pid() { # name, fragment of its command line: only a process this script st
 }
 
 down() {
+      # down deletes PHARE_DEMO_DIR: only a folder inside /tmp, never another one
+      case "$(realpath -m "$DIR")" in
+            /tmp/?*) ;;
+            *) echo "demo-instance: PHARE_DEMO_DIR=$DIR is not inside /tmp: stop (down would delete it)" >&2; exit 1 ;;
+      esac
       stop_pid frontend "http.server 8000"
       stop_pid login "phare-demo-login"
       docker rm -f -v "$API" "$DB" >/dev/null 2>&1 || true

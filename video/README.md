@@ -46,6 +46,25 @@ node contact-sheet.mjs ../public/phare
   - Avant chaque capture, la garde lit les noms à l'écran et s'arrête si l'un d'eux n'est pas dans les données.
   - Les écrans longs sont capturés dans une fenêtre aussi haute que la page, pour que les éléments fixes (le toast
     caché, la barre d'actions de la réunion) restent à leur place.
+  - **Les contrôles des rôles,** avant chaque capture, mesurent ce qui est à l'écran :
+    - le contraste, de 4,5:1 ou plus, des badges « Requis » et « Optionnel » du formulaire, des étiquettes de rôle de
+      l'historique et de celles des lignes de la réunion ;
+    - dans les lignes de la réunion : l'étiquette finit avant le nom, le nom tient sur une ligne, et le champ de date
+      laisse 28 px ou plus à son icône (sa largeur intérieure moins celle de la date affichée, ou de « jj/mm/aaaa ») ;
+    - dans le planning : chaque date et heure tient sur une ligne.
+
+    Une ligne du journal par capture, et un résumé à la fin (le plus petit contraste par rôle à chaque endroit, le plus
+    petit écart entre l'étiquette et le nom, la plus petite marge de la date, le plus grand nombre de lignes).
+- **Trois variables :**
+  - `PHARE_ROLE_CHECKS` : `enforce` (par défaut : un contrôle raté arrête la capture, comme la garde des noms) ou
+    `report` (il est seulement noté, pour mesurer une version sans la correction) ;
+  - `PHARE_COLOR_SCHEME` : `light` (par défaut) ou `dark`, le thème du navigateur ;
+  - `PHARE_CAPTURE_OUT` : le dossier des captures, `video/public/phare/` par défaut. Tout autre dossier doit être dans
+    `/tmp`, car la capture le vide d'abord. `PHARE_CAPTURE_LOG` choisit le journal.
+
+  Par exemple, en mode sombre, hors du dossier de la vidéo :
+  `PHARE_COLOR_SCHEME=dark PHARE_CAPTURE_OUT=/tmp/phare-sombre PHARE_CAPTURE_LOG=$HOME/phare-sombre.log node capture.mjs`.
+  `demo-instance.sh` n'accepte qu'un `PHARE_DEMO_DIR` dans `/tmp`, car le `down` le supprime.
 - **Les sorties** vont dans `video/public/phare/` : les captures à 2x, `manifest.json` (les cadres, en px CSS, où la
   vidéo zoome) et `text.json` (les lignes de texte visibles, pour vérifier les bords). Le journal, avec l'heure de
   l'horloge de démo, va dans `~/phare-captura.log`. Les captures et les vidéos restent hors de git.

@@ -13,20 +13,43 @@
 //   in the demo data. The footer of the login, with the author's name, belongs to the app. It also checks the API badge
 //   (« 🟢 API connectée »), that no toast is showing and that no animation is running.
 // - The password field shows dots on screen, and only dots go to text.json and to the log: the password never does.
+// - Before each capture, the role checks measure what is on screen: the contrast (4.5:1 or more) of the role badges of
+//   the form, of the role labels of the history and of the rows of the meeting; in those rows, that the label ends before
+//   the name, that the name holds on one line and that the date field leaves 28 px or more for its icon; in the
+//   planning, that each date and time holds on one line. One log line per capture, and a summary at the end.
+//
+// Three variables:
+//   PHARE_ROLE_CHECKS   enforce (default: a failed check stops the run, like the name guard) or report (only logs it)
+//   PHARE_COLOR_SCHEME  light (default) or dark, the color scheme of the browser context
+//   PHARE_CAPTURE_OUT   the folder of the captures: video/public/phare/ by default; any other must be inside /tmp,
+//                       since the capture deletes it first. PHARE_CAPTURE_LOG is the log (~/phare-captura.log).
 //
 // The captures (2x), manifest.json (the boxes, in CSS px, that the video zooms into) and text.json (the lines of text on
 // screen in each capture, for the video to check its edges) go to video/public/phare/; the log, with the time of the
 // demo clock at each capture, to ~/phare-captura.log.
 import { appendFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright-core';
 
 const HOST = '127.0.0.2';
 const WEB = (process.env.PHARE_WEB_URL ?? `http://${HOST}:8000`).replace(/\/$/, '');
 const DEMO_DIR = process.env.PHARE_DEMO_DIR ?? '/tmp/phare-demo';
 const LOG = process.env.PHARE_CAPTURE_LOG ?? join(homedir(), 'phare-captura.log');
-const OUT = new URL('../public/phare/', import.meta.url);
+const ROLE_CHECKS = process.env.PHARE_ROLE_CHECKS ?? 'enforce';
+const COLOR_SCHEME = process.env.PHARE_COLOR_SCHEME ?? 'light';
+if (!['enforce', 'report'].includes(ROLE_CHECKS)) throw new Error(`PHARE_ROLE_CHECKS=${ROLE_CHECKS}: enforce or report`);
+if (!['light', 'dark'].includes(COLOR_SCHEME)) throw new Error(`PHARE_COLOR_SCHEME=${COLOR_SCHEME}: light or dark`);
+/** The folder of the captures: video/public/phare/, or a folder inside /tmp (it is deleted first). */
+const OUT = (() => {
+      const own = new URL('../public/phare/', import.meta.url);
+      const asked = process.env.PHARE_CAPTURE_OUT;
+      if (!asked || resolve(asked) === resolve(fileURLToPath(own))) return own;
+      const dir = resolve(asked);
+      if (!dir.startsWith('/tmp/')) throw new Error(`PHARE_CAPTURE_OUT=${asked}: outside video/public/phare/, only a folder inside /tmp, since the capture deletes it first`);
+      return pathToFileURL(`${dir}/`);
+})();
 const DATA = new URL('../../backend/src/test/resources/demo/phare-demo.json', import.meta.url);
 const VIEWPORT = { width: 1440, height: 900 }; // 16:10, like the video
 const SCALE = 2;
@@ -69,7 +92,8 @@ const log = (line) => {
       console.log(text);
       appendFileSync(LOG, text + '\n');
 };
-log(`capture of the pHARe demo: ${WEB}, ${VIEWPORT.width}x${VIEWPORT.height} at ${SCALE}x, ${ZONE}, ${LOCALE}`);
+log(`capture of the pHARe demo: ${WEB}, ${VIEWPORT.width}x${VIEWPORT.height} at ${SCALE}x, ${ZONE}, ${LOCALE}, `
+      + `${COLOR_SCHEME} scheme, role checks ${ROLE_CHECKS}, captures in ${fileURLToPath(OUT)}`);
 
 // ── The browser ──────────────────────────────────────────────────────────────────────────────────────────────────────
 rmSync(OUT, { recursive: true, force: true });
@@ -85,7 +109,9 @@ const browser = await chromium.launch({
       executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', headless: true, args: [`--lang=${LOCALE}`],
       env: { ...process.env, LANGUAGE: `${lang}_${region}:${lang}`, LANG: `${lang}_${region}.UTF-8` },
 });
-const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: SCALE, timezoneId: ZONE, locale: LOCALE, serviceWorkers: 'block' });
+const context = await browser.newContext({
+      viewport: VIEWPORT, deviceScaleFactor: SCALE, timezoneId: ZONE, locale: LOCALE, serviceWorkers: 'block', colorScheme: COLOR_SCHEME,
+});
 const blocked = [];
 const hosts = {};
 await context.route('**/*', (route) => {
@@ -281,6 +307,160 @@ async function textLines(page) {
             return lines;
       });
 }
+// ── The role checks ─────────────────────────────────────────────────────────────────────────────────────────────────
+const ROLES = ['victime', 'temoin', 'intimidateur'];
+const PLACES = { chips: 'form badges', history: 'history labels', meeting: 'meeting labels' };
+const LIMITS = { contrast: 4.5, gap: 0, slack: 28, lines: 1 };
+/** The worst value seen in the run: the lowest contrast per place and role, the lowest gap and slack, the most lines. */
+const worst = { contrast: {}, gap: Infinity, slack: Infinity, nameLines: 0, planLines: 0 };
+
+/** Measures the role labels and the rows of the meeting on screen, in CSS px. */
+async function measureRoles(page) {
+      return page.evaluate((roles) => {
+            const visible = (el) => {
+                  const r = el.getBoundingClientRect();
+                  const s = getComputedStyle(el);
+                  return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none';
+            };
+            const rgba = (c) => {
+                  const v = (c.match(/[\d.]+/g) ?? []).map(Number);
+                  return [v[0] ?? 0, v[1] ?? 0, v[2] ?? 0, v.length > 3 ? v[3] : 1];
+            };
+            const over = (top, base) => [0, 1, 2].map((i) => top[i] * top[3] + base[i] * (1 - top[3])).concat(1);
+            // the background as painted: the element's color over its ancestors' until an opaque one, then the page's
+            const background = (el) => {
+                  const layers = [];
+                  for (let a = el; a; a = a.parentElement) {
+                        const c = rgba(getComputedStyle(a).backgroundColor);
+                        if (c[3] > 0) layers.push(c);
+                        if (c[3] >= 1) break;
+                  }
+                  const page = matchMedia('(prefers-color-scheme: dark)').matches ? [0, 0, 0, 1] : [255, 255, 255, 1];
+                  return layers.reverse().reduce((base, c) => over(c, base), page);
+            };
+            const luminance = (c) => {
+                  const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+                  return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+            };
+            const contrast = (el) => {
+                  const bg = background(el);
+                  const fg = over(rgba(getComputedStyle(el).color), bg);
+                  const [hi, lo] = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
+                  return (hi + 0.05) / (lo + 0.05);
+            };
+            const roleOf = (text) => ({ victime: 'victime', 'témoin': 'temoin', intimidateur: 'intimidateur' })[text.trim().toLowerCase()];
+            // the line boxes of an element's text: rects grouped by their vertical overlap
+            const lines = (el) => {
+                  const range = document.createRange();
+                  range.selectNodeContents(el);
+                  const rects = [...range.getClientRects()].filter((r) => r.width > 0).sort((a, b) => a.top - b.top);
+                  let count = 0;
+                  let bottom = -Infinity;
+                  for (const r of rects) {
+                        if (r.top > bottom - 2) { count += 1; bottom = r.bottom; } else bottom = Math.max(bottom, r.bottom);
+                  }
+                  return count;
+            };
+            const textLeft = (el) => {
+                  const range = document.createRange();
+                  range.selectNodeContents(el);
+                  return Math.min(...[...range.getClientRects()].filter((r) => r.width > 0).map((r) => r.left));
+            };
+            const canvas = document.createElement('canvas').getContext('2d');
+            const contrasts = [];
+            for (const el of document.querySelectorAll('.role-chip.met')) {
+                  if (visible(el)) contrasts.push({ place: 'chips', role: roles.find((r) => el.classList.contains(`chip-${r}`)), value: contrast(el) });
+            }
+            for (const el of document.querySelectorAll('#history-list .student-entry > .badge:first-child')) {
+                  if (visible(el)) contrasts.push({ place: 'history', role: roleOf(el.textContent), value: contrast(el) });
+            }
+            const rows = [...document.querySelectorAll('.row-student')].filter(visible);
+            for (const row of rows) {
+                  const badge = row.querySelector(':scope > .badge');
+                  if (badge) contrasts.push({ place: 'meeting', role: roles.find((r) => row.classList.contains(r)) ?? roleOf(badge.textContent), value: contrast(badge) });
+            }
+            const gaps = [];
+            const nameLines = [];
+            const slacks = [];
+            for (const row of rows) {
+                  const badge = row.querySelector(':scope > .badge');
+                  const name = badge?.nextElementSibling;
+                  if (badge && name) {
+                        gaps.push({ who: name.childNodes[0]?.textContent.trim(), value: textLeft(name) - badge.getBoundingClientRect().right });
+                        nameLines.push({ who: name.childNodes[0]?.textContent.trim(), value: lines(name) });
+                  }
+                  const date = row.querySelector('input[type="date"]');
+                  if (date && visible(date)) {
+                        const s = getComputedStyle(date);
+                        const inner = date.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+                        canvas.font = s.font;
+                        const shown = date.value ? date.value.split('-').reverse().join('/') : 'jj/mm/aaaa';
+                        slacks.push({ who: name?.childNodes[0]?.textContent.trim(), value: inner - canvas.measureText(shown).width });
+                  }
+            }
+            const planLines = [];
+            for (const row of [...document.querySelectorAll('.case-student-row')].filter(visible)) {
+                  const when = [...row.querySelectorAll(':scope > div')].find((d) => d.textContent.includes('🕒'));
+                  if (when) planLines.push({ who: row.querySelector(':scope > div')?.textContent.trim(), value: lines(when) });
+            }
+            return { contrasts, gaps, nameLines, slacks, planLines };
+      }, ROLES);
+}
+
+/** The role checks of a capture: one log line, the worst values of the run, and in enforce mode a stop on a failure. */
+async function roleChecks(page, file) {
+      const m = await measureRoles(page);
+      const failures = [];
+      const parts = [];
+      for (const place of Object.keys(PLACES)) {
+            const found = m.contrasts.filter((c) => c.place === place);
+            if (!found.length) continue;
+            const mins = ROLES.map((role) => {
+                  const values = found.filter((c) => c.role === role).map((c) => c.value);
+                  if (!values.length) return '-';
+                  const min = Math.min(...values);
+                  worst.contrast[place] ??= {};
+                  worst.contrast[place][role] = Math.min(worst.contrast[place][role] ?? Infinity, min);
+                  if (min < LIMITS.contrast) failures.push(`${PLACES[place]}, ${role}: ${min.toFixed(2)}:1`);
+                  return min.toFixed(2);
+            });
+            parts.push(`${place} ${mins.join('/')}`);
+      }
+      if (m.gaps.length) {
+            const min = Math.min(...m.gaps.map((g) => g.value));
+            worst.gap = Math.min(worst.gap, min);
+            for (const g of m.gaps) if (g.value < LIMITS.gap) failures.push(`the label runs ${(-g.value).toFixed(1)} px over ${g.who}`);
+            parts.push(`label→name ${min.toFixed(1)} px`);
+      }
+      if (m.nameLines.length) {
+            const max = Math.max(...m.nameLines.map((l) => l.value));
+            worst.nameLines = Math.max(worst.nameLines, max);
+            for (const l of m.nameLines) if (l.value > LIMITS.lines) failures.push(`${l.who} on ${l.value} lines`);
+            parts.push(`names ${max} line${max > 1 ? 's' : ''}`);
+      }
+      if (m.slacks.length) {
+            const min = Math.min(...m.slacks.map((s) => s.value));
+            worst.slack = Math.min(worst.slack, min);
+            for (const s of m.slacks) if (s.value < LIMITS.slack) failures.push(`the date of ${s.who} leaves ${s.value.toFixed(1)} px for its icon`);
+            parts.push(`date slack ${min.toFixed(1)} px`);
+      }
+      if (m.planLines.length) {
+            const max = Math.max(...m.planLines.map((l) => l.value));
+            worst.planLines = Math.max(worst.planLines, max);
+            for (const l of m.planLines) if (l.value > LIMITS.lines) failures.push(`the planned date of ${l.who} on ${l.value} lines`);
+            parts.push(`planning dates ${max} line${max > 1 ? 's' : ''}`);
+      }
+      const verdict = failures.length ? `${failures.length} failed: ${[...new Set(failures)].join('; ')}` : 'ok';
+      log(`${file}  role checks ${parts.length ? parts.join(', ') : 'nothing to measure'}: ${verdict}`);
+      if (failures.length && ROLE_CHECKS === 'enforce') throw new Error(`${file}: the role checks failed: stop`);
+}
+const roleSummary = () => {
+      const contrast = Object.keys(PLACES).map((place) => `${place} ${ROLES.map((role) => worst.contrast[place]?.[role]?.toFixed(2) ?? '-').join('/')}`);
+      return `role checks summary (${COLOR_SCHEME}, ${ROLE_CHECKS}): contrast ${contrast.join(', ')} (victime/temoin/intimidateur); `
+            + `label→name min ${worst.gap.toFixed(1)} px; date slack min ${worst.slack.toFixed(1)} px; `
+            + `lines max: names ${worst.nameLines}, planning dates ${worst.planLines}`;
+};
+
 const textFile = new URL('text.json', OUT);
 const texts = {};
 
@@ -299,6 +479,7 @@ async function shot(page, file, boxes, { fullPage = false, formFilled = false } 
       }
       await ready(page);
       const names = await guard(page, file, { formFilled });
+      await roleChecks(page, file);
       const measured = await boxes(page);
       for (const [key, value] of Object.entries(measured)) if (!value) throw new Error(`${file}: no ${key} box on screen`);
       await page.screenshot({ path: new URL(`${file}.png`, OUT).pathname });
@@ -476,6 +657,7 @@ await shot(page, 'planejamento', async (p) => ({
 }), { fullPage: true });
 
 await browser.close();
+log(roleSummary());
 log(`requests: ${Object.entries(hosts).map(([host, n]) => `${host} ${n}`).join(', ')}; blocked ${blocked.length}`);
 if (problems.length) throw new Error(`the pages reported problems:\n${problems.join('\n')}`);
 log(`captures written to ${OUT.pathname}`);
