@@ -34,7 +34,8 @@
     display: grid;
     /* 120px: the widest label, « Intimidateur », is 118px wide; 150px: the date and its calendar icon */
     grid-template-columns: 120px 1.5fr 1fr 150px 110px;
-    gap: 1rem;
+    /* 0.75rem: the 30px the label and the date columns took come partly back to the name */
+    gap: 0.75rem;
     padding: 1rem 1.5rem;
     align-items: center;
     border-bottom: 1px solid var(--border-color);
@@ -42,6 +43,8 @@
   .row-student:last-child { border-bottom: none; }
   /* The date and time fields of a row: a narrower inner margin, so the value and its icon fit */
   .row-student input { padding-left: 0.75rem; padding-right: 0.75rem; }
+  /* The class never splits: when a name is long, « (3ème A) » goes whole to the next line */
+  .row-student > div > span { white-space: nowrap; }
   
   .row-student.victime { border-left: 4px solid var(--victime); }
   .row-student.temoin { border-left: 4px solid var(--temoin); }
