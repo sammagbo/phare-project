@@ -54,15 +54,16 @@
   .role-chip {
     padding: 0.5rem 1rem; border-radius: 30px;
     font-size: 0.8rem; font-weight: 700;
-    border: 2px solid currentColor;
+    color: var(--role); border: 2px solid var(--role);
     opacity: 0.4; transition: all 0.3s;
   }
-  .role-chip.met { opacity: 1; transform: scale(1.05); background: currentColor; color: #fff; }
+  /* A role present in the case: its color as the background, with the text color that reads on it (index.css) */
+  .role-chip.met { opacity: 1; transform: scale(1.05); background: var(--role); color: var(--role-on); }
   
   /* Role specific colors for gestion page */
-  .chip-victime { color: var(--victime); }
-  .chip-temoin { color: var(--temoin); }
-  .chip-intimidateur { color: var(--intimidateur); }
+  .chip-victime { --role: var(--victime); --role-on: var(--victime-on); }
+  .chip-temoin { --role: var(--temoin); --role-on: var(--temoin-on); }
+  .chip-intimidateur { --role: var(--intimidateur); --role-on: var(--intimidateur-on); }
 </style>
 </head>
 <body>
