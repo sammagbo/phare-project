@@ -1,8 +1,30 @@
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const UserModel = require('../models/userModel');
 const TokenModel = require('../models/tokenModel');
 const { signAccessToken } = require('../token');
+const {
+    TTL_MS, newRefreshToken, hashToken, readRefreshCookie, setRefreshCookie, clearRefreshCookie,
+} = require('../refreshCookie');
+
+// After a refresh replaces a token, the old one still works once in this interval, for an access token only and with no
+// new cookie: two tabs share the cookie, and when they renew at the same time one of them sends the token the other has
+// just replaced.
+const GRACE_MS = 30 * 1000;
+
+/** A new token for the family, saved as a hash, and set in the cookie. */
+const issueRefreshToken = async (req, res, { familyId, userId, now }) => {
+    const token = newRefreshToken();
+    await TokenModel.create({
+        tokenHash: hashToken(token), familyId, userId, expiresAt: new Date(now.getTime() + TTL_MS),
+    });
+    setRefreshCookie(req, res, token);
+};
+
+const refused = (req, res, error) => {
+    clearRefreshCookie(req, res);
+    return res.status(401).json({ error });
+};
 
 // There is no sign-up: accounts are created by the administrator, from the server's terminal (scripts/create-user.js).
 const AuthController = {
@@ -21,73 +43,85 @@ const AuthController = {
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
 
-            // Sign the short-lived access token of the contract (15 minutes), for the pHARe API
-            const token = signAccessToken(user);
-
-            // Generate opaque refresh token
-            const refreshToken = uuidv4();
-            const expiresAt = new Date();
-            expiresAt.setDate(expiresAt.getDate() + 7); // Valid for 7 days
-            
-            await TokenModel.saveRefreshToken(refreshToken, user.id, expiresAt);
+            // A new session: a new family, its first refresh token in the cookie, and the access token of the contract
+            const now = new Date();
+            await TokenModel.deleteExpired(now);
+            await issueRefreshToken(req, res, { familyId: crypto.randomUUID(), userId: user.id, now });
 
             return res.status(200).json({
-                message: 'Login successful',
-                token: token,
-                refreshToken: refreshToken,
-                user: { id: user.id, email: user.email }
+                token: signAccessToken(user),
+                user: { id: user.id, email: user.email },
             });
-
         } catch (err) {
-            console.error("Login error:", err);
+            console.error('Login error:', err);
             return res.status(500).json({ error: 'Internal server error' });
         }
     },
-    
+
     refresh: async (req, res) => {
         try {
-            const { refreshToken } = req.body;
-            if (!refreshToken) {
-                return res.status(401).json({ error: "Refresh token is required" });
+            const presented = readRefreshCookie(req);
+            if (!presented) {
+                return res.status(401).json({ error: 'No session' });
             }
-            
-            const tokenRecord = await TokenModel.findRefreshToken(refreshToken);
-            
-            if (!tokenRecord) {
-                return res.status(403).json({ error: "Invalid refresh token" });
+
+            const now = new Date();
+            let record = await TokenModel.findByHash(hashToken(presented));
+            if (!record) {
+                return refused(req, res, 'Invalid session');
             }
-            
-            if (new Date(tokenRecord.expires_at) < new Date()) {
-                await TokenModel.deleteRefreshToken(refreshToken);
-                return res.status(403).json({ error: "Refresh token has expired. Please login again." });
+            if (new Date(record.expires_at) <= now) {
+                await TokenModel.deleteFamily(record.family_id);
+                return refused(req, res, 'Session expired. Please log in again.');
             }
-            
-            const user = await UserModel.findById(tokenRecord.user_id);
+
+            // The live token of the family: it is replaced by a new one. If a parallel request replaced it first, this
+            // one is treated as a token that was just replaced.
+            if (!record.replaced_at && !(await TokenModel.markReplaced(record.id, now))) {
+                record = await TokenModel.findByHash(record.token_hash);
+                if (!record) return refused(req, res, 'Invalid session');
+            }
+
+            if (record.replaced_at) {
+                const age = now.getTime() - Date.parse(record.replaced_at);
+                if (age <= GRACE_MS && (await TokenModel.useGrace(record.id, now))) {
+                    const user = await UserModel.findById(record.user_id);
+                    if (!user) return refused(req, res, 'Invalid session');
+                    return res.status(200).json({ token: signAccessToken(user) });
+                }
+                // A replaced token that comes back: it may have been stolen, so the whole session ends. The log names
+                // the user, never the token.
+                console.warn(`Refresh token reuse for user ${record.user_id}: the session is revoked.`);
+                await TokenModel.deleteFamily(record.family_id);
+                return refused(req, res, 'Invalid session');
+            }
+
+            const user = await UserModel.findById(record.user_id);
             if (!user) {
-                return res.status(403).json({ error: "Invalid refresh token" });
+                await TokenModel.deleteFamily(record.family_id);
+                return refused(req, res, 'Invalid session');
             }
-            
-            // Issue new access token
-            const newAccessToken = signAccessToken(user);
-            
-            return res.status(200).json({ token: newAccessToken });
-            
+            await issueRefreshToken(req, res, { familyId: record.family_id, userId: user.id, now });
+            return res.status(200).json({ token: signAccessToken(user) });
         } catch (err) {
-             console.error("Refresh token error:", err);
-             return res.status(500).json({ error: 'Internal server error' });
+            console.error('Refresh token error:', err);
+            return res.status(500).json({ error: 'Internal server error' });
         }
     },
-    
+
+    // No access token needed: the cookie names the session. The family is revoked and the cookie deleted; without a
+    // cookie, or with an unknown one, the answer is the same 204.
     logout: async (req, res) => {
         try {
-            // Ideally, we'd delete the specific refresh token sent in the body or cookies
-            const { refreshToken } = req.body;
-            if (refreshToken) {
-                await TokenModel.deleteRefreshToken(refreshToken);
+            const presented = readRefreshCookie(req);
+            if (presented) {
+                const record = await TokenModel.findByHash(hashToken(presented));
+                if (record) await TokenModel.deleteFamily(record.family_id);
             }
-            res.status(200).json({ message: "Logged out successfully" });
+            clearRefreshCookie(req, res);
+            return res.status(204).end();
         } catch (err) {
-            console.error("Logout error:", err);
+            console.error('Logout error:', err);
             return res.status(500).json({ error: 'Internal server error' });
         }
     },
@@ -101,10 +135,10 @@ const AuthController = {
             }
             return res.status(200).json({ user });
         } catch (err) {
-            console.error("getMe error:", err);
+            console.error('getMe error:', err);
             return res.status(500).json({ error: 'Internal server error' });
         }
-    }
+    },
 };
 
 module.exports = AuthController;

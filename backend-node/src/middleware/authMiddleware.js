@@ -1,24 +1,25 @@
 const { verifyAccessToken } = require('../token');
 
+// Without a valid access token the answer is 401, with the WWW-Authenticate challenge of RFC 6750 (§3.1): plain
+// `Bearer` when no token came, `Bearer error="invalid_token"` when one came but is invalid or expired. The frontend
+// renews its token on a 401 only; 403 stays for an authenticated user without the right, a case that does not exist yet.
 const requireAuth = (req, res, next) => {
-    // Look for the Authorization header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Unauthorized: Missing or invalid token' });
+        res.set('WWW-Authenticate', 'Bearer');
+        return res.status(401).json({ error: 'Unauthorized: missing token' });
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.slice('Bearer '.length).trim();
 
     try {
-        // Verify token: the signature (HS256 only), the expiry, the issuer and the audience of the contract
-        const decoded = verifyAccessToken(token);
-        
-        // Attach user info to the request for the controller to use
-        req.user = decoded;
+        // The signature (HS256 only), the expiry, the issuer and the audience of the contract
+        req.user = verifyAccessToken(token);
         next();
     } catch (err) {
-        return res.status(403).json({ error: 'Forbidden: Invalid or expired token' });
+        res.set('WWW-Authenticate', 'Bearer error="invalid_token"');
+        return res.status(401).json({ error: 'Unauthorized: invalid or expired token' });
     }
 };
 
