@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById('date').value  = now.toISOString().slice(0, 10);
   document.getElementById('heure').value = now.toTimeString().slice(0, 5);
   renderEmptyState();
+  updateLocalVictimsRefsUI(); // the role hint shows with the first student, not before
   animateEntry();
 
   // Watch for state changes
@@ -419,6 +420,7 @@ function resetForm() {
   document.getElementById('heure').value = now.toTimeString().slice(0, 5);
   studentCount = 0;
   renderEmptyState();
+  updateLocalVictimsRefsUI(); // the role hint goes with the students: no chip stays lit after a save
 }
 
 async function handleSaveCase() {
