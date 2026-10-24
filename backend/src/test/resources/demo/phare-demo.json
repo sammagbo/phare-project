@@ -1,0 +1,80 @@
+{
+  "about": "Fictitious data for the portfolio video only: every person is invented, with the surname Exemple, Démo, Fictif or Fictive. Never production data.",
+  "account": "demo@example.com",
+  "clock": { "date": "2026-10-13", "zone": "Europe/Paris", "locale": "fr-FR" },
+  "team": ["Claire Exemple", "Marc Démo", "Sophie Fictive", "Julien Fictif", "Nadia Démo"],
+  "cases": [
+    {
+      "date": "2026-09-10", "heure": "12:30",
+      "eleves": [
+        { "nom": "Léa Exemple", "classe": "6ème A", "type": "VICTIME", "membre": "Claire Exemple" },
+        { "nom": "Hugo Démo", "classe": "6ème B", "type": "INTIMIDATEUR", "lie_a": "Léa Exemple" }
+      ]
+    },
+    {
+      "date": "2026-09-15", "heure": "10:05",
+      "eleves": [
+        { "nom": "Chloé Fictive", "classe": "5ème A", "type": "VICTIME", "membre": "Marc Démo" },
+        { "nom": "Nathan Fictif", "classe": "5ème A", "type": "TEMOIN", "lie_a": "Chloé Fictive" },
+        { "nom": "Théo Exemple", "classe": "5ème C", "type": "INTIMIDATEUR", "lie_a": "Chloé Fictive", "membre": "Marc Démo" }
+      ]
+    },
+    {
+      "date": "2026-09-22", "heure": "16:20",
+      "eleves": [
+        { "nom": "Manon Démo", "classe": "4ème B", "type": "VICTIME", "membre": "Sophie Fictive" },
+        { "nom": "Louis Fictif", "classe": "4ème B", "type": "INTIMIDATEUR", "lie_a": "Manon Démo" }
+      ]
+    },
+    {
+      "date": "2026-09-25", "heure": "13:10",
+      "eleves": [
+        { "nom": "Emma Fictive", "classe": "3ème A", "type": "VICTIME" },
+        { "nom": "Adam Exemple", "classe": "3ème A", "type": "TEMOIN", "lie_a": "Emma Fictive", "membre": "Julien Fictif" },
+        { "nom": "Zoé Démo", "classe": "3ème B", "type": "TEMOIN", "lie_a": "Emma Fictive" },
+        { "nom": "Enzo Fictif", "classe": "3ème B", "type": "INTIMIDATEUR", "lie_a": "Emma Fictive", "membre": "Julien Fictif" }
+      ]
+    },
+    {
+      "date": "2026-10-01", "heure": "11:45",
+      "eleves": [
+        { "nom": "Jade Exemple", "classe": "6ème B", "type": "VICTIME", "membre": "Nadia Démo" },
+        { "nom": "Hugo Démo", "classe": "6ème B", "type": "TEMOIN", "lie_a": "Jade Exemple" }
+      ]
+    },
+    {
+      "date": "2026-10-06", "heure": "15:30",
+      "eleves": [
+        { "nom": "Sarah Fictive", "classe": "4ème A", "type": "VICTIME", "membre": "Claire Exemple" },
+        { "nom": "Noah Démo", "classe": "4ème A", "type": "INTIMIDATEUR", "lie_a": "Sarah Fictive" },
+        { "nom": "Lina Exemple", "classe": "4ème C", "type": "TEMOIN", "lie_a": "Sarah Fictive" }
+      ]
+    },
+    {
+      "date": "2026-10-09", "heure": "12:15",
+      "eleves": [
+        { "nom": "Camille Démo", "classe": "5ème B", "type": "VICTIME", "membre": "Sophie Fictive" },
+        { "nom": "Tom Fictif", "classe": "5ème B", "type": "INTIMIDATEUR", "lie_a": "Camille Démo", "membre": "Sophie Fictive" }
+      ]
+    }
+  ],
+  "screenCase": {
+    "date": "2026-10-13", "heure": "08:40",
+    "eleves": [
+      { "nom": "Inès Exemple", "classe": "5ème B", "type": "VICTIME", "membre": "Marc Démo" },
+      { "nom": "Lucas Fictif", "classe": "5ème B", "type": "TEMOIN", "lie_a": "Inès Exemple", "membre": "Nadia Démo" },
+      { "nom": "Rayan Démo", "classe": "5ème A", "type": "INTIMIDATEUR", "lie_a": "Inès Exemple", "membre": "Marc Démo" }
+    ]
+  },
+  "search": "Hugo Démo",
+  "planning": [
+    { "case": "2026-09-10", "nom": "Léa Exemple", "membre": "Claire Exemple", "date": "2026-10-14", "heure": "09:00" },
+    { "case": "2026-09-10", "nom": "Hugo Démo", "membre": "Claire Exemple", "date": "2026-10-14", "heure": "09:30" },
+    { "case": "2026-09-15", "nom": "Chloé Fictive", "membre": "Marc Démo", "date": "2026-10-14", "heure": "14:00" },
+    { "case": "2026-09-15", "nom": "Théo Exemple", "membre": "Marc Démo", "date": "2026-10-15", "heure": "10:00" },
+    { "case": "2026-09-22", "nom": "Manon Démo", "membre": "Sophie Fictive", "date": "2026-10-15", "heure": "11:00" },
+    { "case": "2026-09-25", "nom": "Emma Fictive", "membre": "Julien Fictif", "date": "2026-10-15", "heure": "14:30" },
+    { "case": "2026-10-06", "nom": "Sarah Fictive", "membre": "Claire Exemple", "date": "2026-10-16", "heure": "09:00" }
+  ],
+  "schedule": { "case": "2026-10-13", "nom": "Inès Exemple", "membre": "Marc Démo", "date": "2026-10-16", "heure": "10:00" }
+}

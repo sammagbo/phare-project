@@ -1,0 +1,4 @@
+public/phare/
+out/
+# The root .gitignore ignores every package-lock.json but the auth service's: the video projects keep theirs, for npm ci
+!package-lock.json

@@ -1,0 +1,13 @@
+{
+  "name": "phare-video-capture",
+  "private": true,
+  "type": "module",
+  "description": "Enregistre les données fictives dans une instance locale de démo et capture les vrais écrans pour la vidéo du portfolio.",
+  "scripts": {
+    "seed": "node seed.mjs",
+    "capture": "node capture.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.63.0"
+  }
+}
