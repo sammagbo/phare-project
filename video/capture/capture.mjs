@@ -387,7 +387,10 @@ async function measureRoles(page) {
                   const name = badge?.nextElementSibling;
                   if (badge && name) {
                         gaps.push({ who: name.childNodes[0]?.textContent.trim(), value: textLeft(name) - badge.getBoundingClientRect().right });
-                        nameLines.push({ who: name.childNodes[0]?.textContent.trim(), value: lines(name) });
+                        const range = document.createRange();
+                        range.selectNodeContents(name);
+                        const width = [...range.getClientRects()].reduce((sum, r) => sum + r.width, 0);
+                        nameLines.push({ who: name.childNodes[0]?.textContent.trim(), value: lines(name), width, cell: name.clientWidth });
                   }
                   const date = row.querySelector('input[type="date"]');
                   if (date && visible(date)) {
@@ -435,7 +438,9 @@ async function roleChecks(page, file) {
       if (m.nameLines.length) {
             const max = Math.max(...m.nameLines.map((l) => l.value));
             worst.nameLines = Math.max(worst.nameLines, max);
-            for (const l of m.nameLines) if (l.value > LIMITS.lines) failures.push(`${l.who} on ${l.value} lines`);
+            for (const l of m.nameLines) {
+                  if (l.value > LIMITS.lines) failures.push(`${l.who} on ${l.value} lines (text ${l.width.toFixed(1)} px, column ${l.cell} px)`);
+            }
             parts.push(`names ${max} line${max > 1 ? 's' : ''}`);
       }
       if (m.slacks.length) {
