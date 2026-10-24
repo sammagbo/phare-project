@@ -16,7 +16,8 @@
 // - Before each capture, the role checks measure what is on screen: the contrast (4.5:1 or more) of the role badges of
 //   the form, of the role labels of the history and of the rows of the meeting; in those rows, that the label ends before
 //   the name, that the name holds on one line and that the date field leaves 28 px or more for its icon; in the
-//   planning, that each date and time holds on one line. One log line per capture, and a summary at the end.
+//   planning, that each date and time holds on one line. One log line per capture, and a summary at the end. After the
+//   case of the screen is saved, the role hint of the empty form must be hidden.
 //
 // Three variables:
 //   PHARE_ROLE_CHECKS   enforce (default: a failed check stops the run, like the name guard) or report (only logs it)
@@ -548,6 +549,10 @@ await page.locator('#history-list .history-card').nth(data.cases.length).waitFor
 await settleClock(3000); // the toast leaves after 2.5 s
 await settleGsap(page);
 log('the case of the screen is saved through the screen');
+// After the save the form is empty, and the role hint goes with its students (fix/role-labels): no badge stays lit.
+const hint = await page.locator('#role-hint').evaluate((el) => getComputedStyle(el).display);
+if (hint !== 'none') throw new Error(`after the save, the role hint still shows (display: ${hint}): stop`);
+log('after the save, the role hint is hidden (#role-hint display: none)');
 
 // ── The history and its search ──────────────────────────────────────────────────────────────────────────────────────
 await clockTo(AT.historico);

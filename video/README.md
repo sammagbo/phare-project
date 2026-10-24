@@ -51,7 +51,9 @@ node contact-sheet.mjs ../public/phare
       l'historique et de celles des lignes de la réunion ;
     - dans les lignes de la réunion : l'étiquette finit avant le nom, le nom tient sur une ligne, et le champ de date
       laisse 28 px ou plus à son icône (sa largeur intérieure moins celle de la date affichée, ou de « jj/mm/aaaa ») ;
-    - dans le planning : chaque date et heure tient sur une ligne.
+    - dans le planning : chaque date et heure tient sur une ligne ;
+    - après l'enregistrement du cas par l'écran, le formulaire est vide et l'indication des rôles (`#role-hint`) doit
+      être cachée : aucun badge ne reste allumé.
 
     Une ligne du journal par capture, et un résumé à la fin (le plus petit contraste par rôle à chaque endroit, le plus
     petit écart entre l'étiquette et le nom, la plus petite marge de la date, le plus grand nombre de lignes).
