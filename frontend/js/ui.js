@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById('date').value  = now.toISOString().slice(0, 10);
   document.getElementById('heure').value = now.toTimeString().slice(0, 5);
   renderEmptyState();
+  updateLocalVictimsRefsUI(); // the role hint shows with the first student, not before
   animateEntry();
 
   // Watch for state changes
@@ -419,6 +420,7 @@ function resetForm() {
   document.getElementById('heure').value = now.toTimeString().slice(0, 5);
   studentCount = 0;
   renderEmptyState();
+  updateLocalVictimsRefsUI(); // the role hint goes with the students: no chip stays lit after a save
 }
 
 async function handleSaveCase() {
@@ -495,7 +497,7 @@ function renderHistoryUI(filteredCases, state) {
   container.innerHTML = filteredCases.map((c) => {
     const lines = c.eleves.map(e =>
       `<div class="student-entry" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
-        <span class="badge" style="background: var(--${typeClass(e.type)}); color: #fff; min-width: 90px; text-align: center;">${typeLabel(e.type)}</span>
+        <span class="badge" style="background: var(--${typeClass(e.type)}); color: var(--${typeClass(e.type)}-on); min-width: 90px; text-align: center;">${typeLabel(e.type)}</span>
         <span style="font-weight: 700;">${e.nom}</span>
         ${e.membre ? `<span class="badge" style="background: var(--primary-light); color: var(--primary); font-size: 0.75rem;">👤 ${e.membre}</span>` : ''}
       </div>`
