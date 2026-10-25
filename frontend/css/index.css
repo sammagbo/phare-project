@@ -32,6 +32,10 @@
   --victime: hsl(6, 63%, 50%);
   --temoin: hsl(42, 90%, 45%);
   --intimidateur: hsl(282, 50%, 45%);
+  /* The text on each role color, for a contrast of 4.5:1 or more: white on the darker ones, dark on the lighter */
+  --victime-on: #fff;
+  --temoin-on: hsl(156, 30%, 10%);
+  --intimidateur-on: #fff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,6 +65,10 @@
     --victime: hsl(6, 75%, 60%);
     --temoin: hsl(42, 90%, 60%);
     --intimidateur: hsl(282, 60%, 65%);
+    /* Lighter role colors in dark mode: dark text on all three */
+    --victime-on: hsl(156, 40%, 4%);
+    --temoin-on: hsl(156, 40%, 4%);
+    --intimidateur-on: hsl(156, 40%, 4%);
   }
 }
 

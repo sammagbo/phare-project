@@ -32,13 +32,19 @@
   
   .row-student {
     display: grid;
-    grid-template-columns: 100px 1.5fr 1fr 140px 110px;
-    gap: 1rem;
+    /* 120px: the widest label, « Intimidateur », is 118px wide; 150px: the date and its calendar icon */
+    grid-template-columns: 120px 1.5fr 1fr 150px 110px;
+    /* 0.75rem: the 30px the label and the date columns took come partly back to the name */
+    gap: 0.75rem;
     padding: 1rem 1.5rem;
     align-items: center;
     border-bottom: 1px solid var(--border-color);
   }
   .row-student:last-child { border-bottom: none; }
+  /* The date and time fields of a row: a narrower inner margin, so the value and its icon fit */
+  .row-student input { padding-left: 0.75rem; padding-right: 0.75rem; }
+  /* The class never splits: when a name is long, « (3ème A) » goes whole to the next line */
+  .row-student > div > span { white-space: nowrap; }
   
   .row-student.victime { border-left: 4px solid var(--victime); }
   .row-student.temoin { border-left: 4px solid var(--temoin); }
@@ -48,7 +54,8 @@
   
   .case-student-row {
     display: grid; 
-    grid-template-columns: 95px 1.5fr 1fr 1fr auto;
+    /* The same 120px for the label as the rows above, and room for « 16/10/2026 à 10:00 » on one line */
+    grid-template-columns: 120px 1.2fr 1fr 1.3fr auto;
     gap: 1rem; padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
   }
@@ -287,7 +294,7 @@
               const ent = rd[p.i] || {};
               return `
                 <div class="row-student ${td.class}">
-                  <span class="badge" style="background: currentColor; color: #fff; width: fit-content;">${td.label}</span>
+                  <span class="badge" style="background: var(--${td.class}); color: var(--${td.class}-on); width: fit-content;">${td.label}</span>
                   <div style="font-weight: 700;">${p.e.nom} <span style="font-weight: 400; opacity: 0.7;">(${p.e.classe || '?'})</span></div>
                   <select onchange="window.onFieldChange(this)" data-case="${c.id}" data-idx="${p.i}" class="f-membre">
                     <option value="">Intervenant...</option>
